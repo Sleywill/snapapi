@@ -1,0 +1,614 @@
+/**
+ * SnapAPI JavaScript/TypeScript SDK
+ * Lightning-fast screenshot API for developers
+ *
+ * @packageDocumentation
+ */
+
+// Device preset types
+export type DevicePreset =
+  | 'desktop-1080p' | 'desktop-1440p' | 'desktop-4k'
+  | 'macbook-pro-13' | 'macbook-pro-16' | 'imac-24'
+  | 'iphone-se' | 'iphone-12' | 'iphone-13' | 'iphone-14' | 'iphone-14-pro'
+  | 'iphone-15' | 'iphone-15-pro' | 'iphone-15-pro-max'
+  | 'ipad' | 'ipad-mini' | 'ipad-air' | 'ipad-pro-11' | 'ipad-pro-12.9'
+  | 'pixel-7' | 'pixel-8' | 'pixel-8-pro'
+  | 'samsung-galaxy-s23' | 'samsung-galaxy-s24' | 'samsung-galaxy-tab-s9';
+
+export interface Cookie {
+  name: string;
+  value: string;
+  domain?: string;
+  path?: string;
+  expires?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: 'Strict' | 'Lax' | 'None';
+}
+
+export interface HttpAuth {
+  username: string;
+  password: string;
+}
+
+export interface ProxyConfig {
+  server: string;
+  username?: string;
+  password?: string;
+  bypass?: string[];
+}
+
+export interface Geolocation {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+}
+
+export interface PdfOptions {
+  /** Page size: 'a4', 'a3', 'a5', 'letter', 'legal', 'tabloid', 'custom' */
+  pageSize?: 'a4' | 'a3' | 'a5' | 'letter' | 'legal' | 'tabloid' | 'custom';
+  /** Custom width (e.g., '210mm') */
+  width?: string;
+  /** Custom height (e.g., '297mm') */
+  height?: string;
+  /** Landscape orientation */
+  landscape?: boolean;
+  /** Top margin (e.g., '20mm') */
+  marginTop?: string;
+  /** Right margin */
+  marginRight?: string;
+  /** Bottom margin */
+  marginBottom?: string;
+  /** Left margin */
+  marginLeft?: string;
+  /** Print background graphics */
+  printBackground?: boolean;
+  /** HTML template for header */
+  headerTemplate?: string;
+  /** HTML template for footer */
+  footerTemplate?: string;
+  /** Display header and footer */
+  displayHeaderFooter?: boolean;
+  /** Scale (0.1-2) */
+  scale?: number;
+  /** Page ranges (e.g., '1-5') */
+  pageRanges?: string;
+  /** Use CSS page size */
+  preferCSSPageSize?: boolean;
+}
+
+export interface ThumbnailOptions {
+  /** Enable thumbnail generation */
+  enabled: boolean;
+  /** Thumbnail width (50-800) */
+  width?: number;
+  /** Thumbnail height (50-600) */
+  height?: number;
+  /** Fit mode: 'cover', 'contain', 'fill' */
+  fit?: 'cover' | 'contain' | 'fill';
+}
+
+export interface ExtractMetadataOptions {
+  /** Extract fonts used on page */
+  fonts?: boolean;
+  /** Extract dominant colors */
+  colors?: boolean;
+  /** Extract all links */
+  links?: boolean;
+  /** Include HTTP status code */
+  httpStatusCode?: boolean;
+}
+
+export interface ScreenshotOptions {
+  /** URL to capture */
+  url?: string;
+  /** HTML content to render */
+  html?: string;
+  /** Output format: 'png' | 'jpeg' | 'webp' | 'pdf' */
+  format?: 'png' | 'jpeg' | 'webp' | 'pdf';
+  /** Image quality 1-100 (JPEG/WebP only) */
+  quality?: number;
+  /** Device preset for viewport settings */
+  device?: DevicePreset;
+  /** Viewport width in pixels (100-3840) */
+  width?: number;
+  /** Viewport height in pixels (100-2160) */
+  height?: number;
+  /** Device scale factor (1-3) */
+  deviceScaleFactor?: number;
+  /** Emulate mobile device */
+  isMobile?: boolean;
+  /** Enable touch events */
+  hasTouch?: boolean;
+  /** Landscape orientation */
+  isLandscape?: boolean;
+  /** Capture the full scrollable page */
+  fullPage?: boolean;
+  /** Delay between scroll steps for full page (ms) */
+  fullPageScrollDelay?: number;
+  /** Max height for full page (px) */
+  fullPageMaxHeight?: number;
+  /** CSS selector to capture specific element */
+  selector?: string;
+  /** Scroll element into view before capture */
+  selectorScrollIntoView?: boolean;
+  /** Clip region X position */
+  clipX?: number;
+  /** Clip region Y position */
+  clipY?: number;
+  /** Clip region width */
+  clipWidth?: number;
+  /** Clip region height */
+  clipHeight?: number;
+  /** Delay in ms before capture (0-30000) */
+  delay?: number;
+  /** Max wait time in ms (1000-60000) */
+  timeout?: number;
+  /** Wait until event: 'load', 'domcontentloaded', 'networkidle' */
+  waitUntil?: 'load' | 'domcontentloaded' | 'networkidle';
+  /** Wait for element to appear before capture */
+  waitForSelector?: string;
+  /** Timeout for waiting for selector */
+  waitForSelectorTimeout?: number;
+  /** Emulate dark mode preference */
+  darkMode?: boolean;
+  /** Reduce animations */
+  reducedMotion?: boolean;
+  /** Custom CSS to inject */
+  css?: string;
+  /** JavaScript code to execute before capture */
+  javascript?: string;
+  /** CSS selectors to hide elements */
+  hideSelectors?: string[];
+  /** CSS selector to click before capture */
+  clickSelector?: string;
+  /** Delay after click (ms) */
+  clickDelay?: number;
+  /** Block ads */
+  blockAds?: boolean;
+  /** Block trackers */
+  blockTrackers?: boolean;
+  /** Hide cookie consent banners */
+  blockCookieBanners?: boolean;
+  /** Block chat widgets (Intercom, Drift, Zendesk, etc.) */
+  blockChatWidgets?: boolean;
+  /** Resource types to block */
+  blockResources?: Array<'document' | 'stylesheet' | 'image' | 'media' | 'font' | 'script' | 'xhr' | 'fetch' | 'websocket'>;
+  /** Custom User-Agent */
+  userAgent?: string;
+  /** Custom HTTP headers */
+  extraHeaders?: Record<string, string>;
+  /** Array of cookies to set */
+  cookies?: Cookie[];
+  /** HTTP basic auth credentials */
+  httpAuth?: HttpAuth;
+  /** Proxy configuration */
+  proxy?: ProxyConfig;
+  /** Geolocation coordinates */
+  geolocation?: Geolocation;
+  /** Timezone (e.g., 'America/New_York') */
+  timezone?: string;
+  /** Locale (e.g., 'en-US') */
+  locale?: string;
+  /** PDF generation options */
+  pdfOptions?: PdfOptions;
+  /** Thumbnail generation options */
+  thumbnail?: ThumbnailOptions;
+  /** Fail on HTTP 4xx/5xx errors */
+  failOnHttpError?: boolean;
+  /** Enable caching */
+  cache?: boolean;
+  /** Cache TTL in seconds (60-2592000) */
+  cacheTtl?: number;
+  /** Response type */
+  responseType?: 'binary' | 'base64' | 'json';
+  /** Include page metadata in response */
+  includeMetadata?: boolean;
+  /** Additional metadata to extract */
+  extractMetadata?: ExtractMetadataOptions;
+}
+
+export interface ScreenshotMetadata {
+  /** Page title */
+  title?: string;
+  /** Page description */
+  description?: string;
+  /** Favicon URL */
+  favicon?: string;
+  /** Open Graph data */
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  /** HTTP status code */
+  httpStatusCode?: number;
+  /** Fonts used on page */
+  fonts?: string[];
+  /** Dominant colors */
+  colors?: string[];
+  /** All links on page */
+  links?: string[];
+}
+
+export interface ScreenshotResult {
+  /** Whether the screenshot was successful */
+  success: boolean;
+  /** Base64-encoded image data (when responseType is 'json' or 'base64') */
+  data?: string;
+  /** Image format */
+  format: string;
+  /** Image width */
+  width: number;
+  /** Image height */
+  height: number;
+  /** File size in bytes */
+  fileSize: number;
+  /** Processing duration in ms */
+  took: number;
+  /** Whether result was from cache */
+  cached: boolean;
+  /** Page metadata (when includeMetadata is true) */
+  metadata?: ScreenshotMetadata;
+  /** Thumbnail data (when thumbnail is enabled) */
+  thumbnail?: string;
+}
+
+export interface BatchOptions {
+  /** Array of URLs to capture */
+  urls: string[];
+  /** Output format */
+  format?: 'png' | 'jpeg' | 'webp' | 'pdf';
+  /** Image quality */
+  quality?: number;
+  /** Viewport width */
+  width?: number;
+  /** Viewport height */
+  height?: number;
+  /** Full page capture */
+  fullPage?: boolean;
+  /** Dark mode */
+  darkMode?: boolean;
+  /** Block ads */
+  blockAds?: boolean;
+  /** Block cookie banners */
+  blockCookieBanners?: boolean;
+  /** Webhook URL for async notifications */
+  webhookUrl?: string;
+}
+
+export interface BatchResult {
+  /** Whether operation was successful */
+  success: boolean;
+  /** Batch job ID */
+  jobId: string;
+  /** Job status */
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  /** Total URLs */
+  total: number;
+  /** Completed count */
+  completed?: number;
+  /** Failed count */
+  failed?: number;
+  /** Results for each URL (when completed) */
+  results?: Array<{
+    url: string;
+    status: 'pending' | 'completed' | 'failed';
+    data?: string;
+    error?: string;
+    duration?: number;
+  }>;
+  /** Created timestamp */
+  createdAt?: string;
+  /** Completed timestamp */
+  completedAt?: string;
+}
+
+export interface DeviceInfo {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  deviceScaleFactor: number;
+  isMobile: boolean;
+}
+
+export interface DevicesResult {
+  success: boolean;
+  devices: {
+    desktop: DeviceInfo[];
+    mac: DeviceInfo[];
+    iphone: DeviceInfo[];
+    ipad: DeviceInfo[];
+    android: DeviceInfo[];
+  };
+  total: number;
+}
+
+export interface CapabilitiesResult {
+  success: boolean;
+  version: string;
+  capabilities: {
+    formats: string[];
+    maxViewport: { width: number; height: number };
+    maxFullPageHeight: number;
+    maxHtmlSize: number;
+    maxCssSize: number;
+    maxJsSize: number;
+    devicePresets: number;
+    features: Record<string, unknown>;
+  };
+}
+
+export interface UsageResult {
+  used: number;
+  limit: number;
+  remaining: number;
+  resetAt: string;
+}
+
+export interface SnapAPIConfig {
+  /** Your API key */
+  apiKey: string;
+  /** Base URL (default: https://api.snapapi.pics) */
+  baseUrl?: string;
+  /** Request timeout in ms (default: 60000) */
+  timeout?: number;
+}
+
+export interface SnapAPIError extends Error {
+  code: string;
+  statusCode: number;
+  details?: Record<string, unknown>;
+}
+
+/**
+ * SnapAPI Client
+ *
+ * @example
+ * ```typescript
+ * import { SnapAPI } from '@snapapi/sdk';
+ *
+ * const client = new SnapAPI({ apiKey: 'sk_live_xxx' });
+ *
+ * // Capture a screenshot
+ * const screenshot = await client.screenshot({
+ *   url: 'https://example.com',
+ *   format: 'png',
+ *   width: 1920,
+ *   height: 1080
+ * });
+ * ```
+ */
+export class SnapAPI {
+  private apiKey: string;
+  private baseUrl: string;
+  private timeout: number;
+
+  constructor(config: SnapAPIConfig) {
+    if (!config.apiKey) {
+      throw new Error('API key is required');
+    }
+    this.apiKey = config.apiKey;
+    this.baseUrl = config.baseUrl || 'https://api.snapapi.pics';
+    this.timeout = config.timeout || 60000;
+  }
+
+  /**
+   * Capture a screenshot of the specified URL or HTML content
+   *
+   * @param options - Screenshot options
+   * @returns Screenshot result or binary data
+   *
+   * @example
+   * ```typescript
+   * // Get screenshot as binary buffer
+   * const buffer = await client.screenshot({
+   *   url: 'https://example.com',
+   *   responseType: 'binary'
+   * });
+   * fs.writeFileSync('screenshot.png', buffer);
+   *
+   * // Get screenshot with metadata
+   * const result = await client.screenshot({
+   *   url: 'https://example.com',
+   *   responseType: 'json',
+   *   includeMetadata: true
+   * });
+   * console.log(result.metadata.title);
+   * ```
+   */
+  async screenshot(options: ScreenshotOptions): Promise<ScreenshotResult | Buffer> {
+    if (!options.url && !options.html) {
+      throw new Error('Either url or html is required');
+    }
+
+    const response = await this.request('/v1/screenshot', {
+      method: 'POST',
+      body: JSON.stringify(options),
+    });
+
+    if (options.responseType === 'binary' || !options.responseType) {
+      return Buffer.from(await response.arrayBuffer());
+    }
+
+    return response.json() as Promise<ScreenshotResult>;
+  }
+
+  /**
+   * Capture a screenshot from HTML content
+   *
+   * @param html - HTML content to render
+   * @param options - Additional screenshot options
+   * @returns Screenshot result or binary data
+   */
+  async screenshotFromHtml(html: string, options: Omit<ScreenshotOptions, 'url' | 'html'> = {}): Promise<ScreenshotResult | Buffer> {
+    return this.screenshot({ ...options, html });
+  }
+
+  /**
+   * Capture a screenshot using a device preset
+   *
+   * @param url - URL to capture
+   * @param device - Device preset name
+   * @param options - Additional screenshot options
+   * @returns Screenshot result or binary data
+   */
+  async screenshotDevice(url: string, device: DevicePreset, options: Omit<ScreenshotOptions, 'url' | 'device'> = {}): Promise<ScreenshotResult | Buffer> {
+    return this.screenshot({ ...options, url, device });
+  }
+
+  /**
+   * Generate a PDF from a URL or HTML content
+   *
+   * @param options - PDF options
+   * @returns Binary PDF data
+   *
+   * @example
+   * ```typescript
+   * const pdf = await client.pdf({
+   *   url: 'https://example.com',
+   *   pdfOptions: {
+   *     pageSize: 'a4',
+   *     marginTop: '20mm',
+   *     marginBottom: '20mm'
+   *   }
+   * });
+   * fs.writeFileSync('document.pdf', pdf);
+   * ```
+   */
+  async pdf(options: Omit<ScreenshotOptions, 'format'>): Promise<Buffer> {
+    if (!options.url && !options.html) {
+      throw new Error('Either url or html is required');
+    }
+
+    const response = await this.request('/v1/pdf', {
+      method: 'POST',
+      body: JSON.stringify({ ...options, format: 'pdf' }),
+    });
+
+    return Buffer.from(await response.arrayBuffer());
+  }
+
+  /**
+   * Capture screenshots of multiple URLs
+   *
+   * @param options - Batch options with array of URLs
+   * @returns Batch job result
+   *
+   * @example
+   * ```typescript
+   * const batch = await client.batch({
+   *   urls: ['https://example.com', 'https://example.org'],
+   *   format: 'png',
+   *   webhookUrl: 'https://your-server.com/webhook'
+   * });
+   * console.log(batch.jobId);
+   * ```
+   */
+  async batch(options: BatchOptions): Promise<BatchResult> {
+    if (!options.urls || options.urls.length === 0) {
+      throw new Error('URLs array is required');
+    }
+
+    const response = await this.request('/v1/screenshot/batch', {
+      method: 'POST',
+      body: JSON.stringify(options),
+    });
+
+    return response.json() as Promise<BatchResult>;
+  }
+
+  /**
+   * Check the status of a batch job
+   *
+   * @param jobId - The batch job ID
+   * @returns Batch job status and results
+   */
+  async getBatchStatus(jobId: string): Promise<BatchResult> {
+    const response = await this.request(`/v1/screenshot/batch/${jobId}`);
+    return response.json() as Promise<BatchResult>;
+  }
+
+  /**
+   * Get available device presets
+   *
+   * @returns Device presets grouped by category
+   */
+  async getDevices(): Promise<DevicesResult> {
+    const response = await this.request('/v1/devices');
+    return response.json() as Promise<DevicesResult>;
+  }
+
+  /**
+   * Get API capabilities and features
+   *
+   * @returns API capabilities
+   */
+  async getCapabilities(): Promise<CapabilitiesResult> {
+    const response = await this.request('/v1/capabilities');
+    return response.json() as Promise<CapabilitiesResult>;
+  }
+
+  /**
+   * Get your API usage statistics
+   *
+   * @returns Usage statistics
+   */
+  async getUsage(): Promise<UsageResult> {
+    const response = await this.request('/v1/usage');
+    return response.json() as Promise<UsageResult>;
+  }
+
+  private async request(path: string, init?: RequestInit): Promise<Response> {
+    const url = `${this.baseUrl}${path}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...init,
+        headers: {
+          'X-Api-Key': this.apiKey,
+          'Content-Type': 'application/json',
+          'User-Agent': 'snapapi-js/1.1.0',
+          ...init?.headers,
+        },
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const error = await this.parseError(response);
+        throw error;
+      }
+
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  private async parseError(response: Response): Promise<SnapAPIError> {
+    let body: { error?: { code?: string; message?: string; details?: Record<string, unknown> } } = {};
+
+    try {
+      body = await response.json();
+    } catch {
+      // Ignore JSON parse errors
+    }
+
+    const error = new Error(body.error?.message || `HTTP ${response.status}`) as SnapAPIError;
+    error.code = body.error?.code || 'UNKNOWN_ERROR';
+    error.statusCode = response.status;
+    error.details = body.error?.details;
+
+    return error;
+  }
+}
+
+// Default export
+export default SnapAPI;
+
+// Convenience function
+export function createClient(config: SnapAPIConfig): SnapAPI {
+  return new SnapAPI(config);
+}
