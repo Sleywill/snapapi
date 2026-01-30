@@ -258,7 +258,64 @@ interface ScreenshotOptions {
   quality?: number;         // JPEG/WebP quality 1-100 (default: 80)
   scale?: number;           // Device scale factor (default: 1)
   timeout?: number;         // Page load timeout in ms (default: 30000)
+  failIfContentMissing?: string[];  // Fail if text not found on page
+  failIfContentContains?: string[]; // Fail if text found on page
 }
+```
+
+### Video Options (New!)
+
+Capture scroll videos of webpages with smooth animations:
+
+```typescript
+interface VideoOptions {
+  url: string;                    // Required: URL to capture
+  format?: 'mp4' | 'webm' | 'gif'; // Video format (default: 'mp4')
+  width?: number;                 // Viewport width (default: 1280)
+  height?: number;                // Viewport height (default: 720)
+  duration?: number;              // Video duration in ms (default: 5000)
+  fps?: number;                   // Frames per second (default: 24)
+  scroll?: boolean;               // Enable scroll animation
+  scrollDelay?: number;           // Delay between scroll steps in ms (0-5000)
+  scrollDuration?: number;        // Duration of each scroll animation (100-5000)
+  scrollBy?: number;              // Pixels to scroll per step (100-2000)
+  scrollEasing?: 'linear' | 'ease_in' | 'ease_out' | 'ease_in_out' | 'ease_in_out_quint';
+  scrollBack?: boolean;           // Scroll back to top at end
+  scrollComplete?: boolean;       // Ensure entire page is scrolled
+  darkMode?: boolean;             // Force dark mode
+  blockAds?: boolean;             // Block ads
+  blockCookieBanners?: boolean;   // Hide cookie consent banners
+}
+
+// Example: Capture a smooth scroll video
+const video = await client.video({
+  url: 'https://example.com',
+  format: 'mp4',
+  scroll: true,
+  scrollDuration: 1500,
+  scrollEasing: 'ease_in_out',
+  scrollBack: true
+});
+
+await fs.writeFile('scroll-video.mp4', video);
+```
+
+### Content Validation (New!)
+
+Fail screenshot capture based on page content:
+
+```typescript
+// Fail if login page is shown (content you don't want)
+const screenshot = await client.screenshot({
+  url: 'https://example.com/dashboard',
+  failIfContentContains: ['Please log in', 'Session expired']
+});
+
+// Fail if expected content is missing
+const screenshot = await client.screenshot({
+  url: 'https://example.com/product',
+  failIfContentMissing: ['Add to Cart', 'In Stock']
+});
 ```
 
 ---

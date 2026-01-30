@@ -135,6 +135,28 @@ class SnapAPI(
     }
 
     /**
+     * Capture a video of a webpage with optional scroll animation.
+     *
+     * @param options Video options
+     * @return Raw video bytes
+     */
+    suspend fun video(options: VideoOptions): ByteArray {
+        return doRequest("POST", "/v1/video", options)
+    }
+
+    /**
+     * Capture a video and return structured result with metadata.
+     *
+     * @param options Video options
+     * @return Video result with metadata
+     */
+    suspend fun videoWithResult(options: VideoOptions): VideoResult {
+        val opts = options.copy(responseType = "json")
+        val response = doRequest("POST", "/v1/video", opts)
+        return json.decodeFromString(response.decodeToString())
+    }
+
+    /**
      * Capture screenshots of multiple URLs.
      *
      * @param options Batch options

@@ -97,7 +97,9 @@ class Client
      *     cacheTtl?: int,
      *     responseType?: string,
      *     includeMetadata?: bool,
-     *     extractMetadata?: array
+     *     extractMetadata?: array,
+     *     failIfContentMissing?: array<string>,
+     *     failIfContentContains?: array<string>
      * } $options Screenshot options
      * @return string|array Binary image data or array if responseType is 'json'
      * @throws SnapAPIException
@@ -190,6 +192,58 @@ class Client
         $options['responseType'] = $options['responseType'] ?? 'binary';
 
         return $this->request('POST', '/v1/pdf', $options);
+    }
+
+    /**
+     * Capture a video of a webpage with optional scroll animation.
+     *
+     * @param array{
+     *     url: string,
+     *     format?: string,
+     *     quality?: int,
+     *     width?: int,
+     *     height?: int,
+     *     device?: string,
+     *     duration?: int,
+     *     fps?: int,
+     *     delay?: int,
+     *     timeout?: int,
+     *     waitUntil?: string,
+     *     waitForSelector?: string,
+     *     darkMode?: bool,
+     *     blockAds?: bool,
+     *     blockCookieBanners?: bool,
+     *     css?: string,
+     *     javascript?: string,
+     *     hideSelectors?: array,
+     *     userAgent?: string,
+     *     cookies?: array,
+     *     responseType?: string,
+     *     scroll?: bool,
+     *     scrollDelay?: int,
+     *     scrollDuration?: int,
+     *     scrollBy?: int,
+     *     scrollEasing?: string,
+     *     scrollBack?: bool,
+     *     scrollComplete?: bool
+     * } $options Video options
+     * @return string|array Binary video data or array if responseType is 'json'
+     * @throws SnapAPIException
+     */
+    public function video(array $options)
+    {
+        if (empty($options['url'])) {
+            throw new \InvalidArgumentException('URL is required');
+        }
+
+        $responseType = $options['responseType'] ?? 'binary';
+        $response = $this->request('POST', '/v1/video', $options);
+
+        if ($responseType === 'json' || $responseType === 'base64') {
+            return json_decode($response, true);
+        }
+
+        return $response;
     }
 
     /**

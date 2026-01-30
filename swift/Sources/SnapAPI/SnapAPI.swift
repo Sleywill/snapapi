@@ -146,6 +146,27 @@ public actor SnapAPI {
         ))
     }
 
+    // MARK: - Video Methods
+
+    /// Capture a video of a webpage with optional scroll animation.
+    ///
+    /// - Parameter options: Video options
+    /// - Returns: Raw video data
+    public func video(_ options: VideoOptions) async throws -> Data {
+        return try await doRequest("POST", path: "/v1/video", body: options)
+    }
+
+    /// Capture a video and return structured result with metadata.
+    ///
+    /// - Parameter options: Video options
+    /// - Returns: Video result with metadata
+    public func videoWithResult(_ options: VideoOptions) async throws -> VideoResult {
+        var opts = options
+        opts.responseType = "json"
+        let data = try await doRequest("POST", path: "/v1/video", body: opts)
+        return try JSONDecoder().decode(VideoResult.self, from: data)
+    }
+
     // MARK: - Batch Methods
 
     /// Capture screenshots of multiple URLs.

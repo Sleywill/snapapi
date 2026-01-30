@@ -234,6 +234,43 @@ func (c *Client) PDFFromHTML(html string, pdfOpts *PDFOptions) ([]byte, error) {
 	return c.doRequest("POST", "/v1/screenshot", opts)
 }
 
+// Video captures a video of a webpage with optional scroll animation.
+func (c *Client) Video(opts VideoOptions) ([]byte, error) {
+	if opts.URL == "" {
+		return nil, &APIError{
+			Code:       ErrInvalidParams,
+			Message:    "URL is required",
+			StatusCode: 400,
+		}
+	}
+
+	return c.doRequest("POST", "/v1/video", opts)
+}
+
+// VideoWithResult captures a video and returns structured result with metadata.
+func (c *Client) VideoWithResult(opts VideoOptions) (*VideoResult, error) {
+	if opts.URL == "" {
+		return nil, &APIError{
+			Code:       ErrInvalidParams,
+			Message:    "URL is required",
+			StatusCode: 400,
+		}
+	}
+
+	opts.ResponseType = "json"
+	data, err := c.doRequest("POST", "/v1/video", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var result VideoResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &result, nil
+}
+
 // GetDevices retrieves available device presets.
 func (c *Client) GetDevices() (*DevicesResult, error) {
 	data, err := c.doRequest("GET", "/v1/devices", nil)

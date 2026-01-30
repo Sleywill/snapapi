@@ -155,6 +155,63 @@ type ScreenshotOptions struct {
 	ResponseType           string            `json:"responseType,omitempty"`
 	IncludeMetadata        bool              `json:"includeMetadata,omitempty"`
 	ExtractMetadata        *ExtractMetadata  `json:"extractMetadata,omitempty"`
+	FailIfContentMissing   []string          `json:"failIfContentMissing,omitempty"`
+	FailIfContentContains  []string          `json:"failIfContentContains,omitempty"`
+}
+
+// ScrollEasing represents the easing function for scroll animation.
+type ScrollEasing string
+
+const (
+	ScrollEasingLinear        ScrollEasing = "linear"
+	ScrollEasingEaseIn        ScrollEasing = "ease_in"
+	ScrollEasingEaseOut       ScrollEasing = "ease_out"
+	ScrollEasingEaseInOut     ScrollEasing = "ease_in_out"
+	ScrollEasingEaseInOutQuint ScrollEasing = "ease_in_out_quint"
+)
+
+// VideoOptions represents options for capturing a video.
+type VideoOptions struct {
+	URL               string            `json:"url"`
+	Format            string            `json:"format,omitempty"`
+	Quality           *int              `json:"quality,omitempty"`
+	Width             int               `json:"width,omitempty"`
+	Height            int               `json:"height,omitempty"`
+	Device            DevicePreset      `json:"device,omitempty"`
+	Duration          int               `json:"duration,omitempty"`
+	FPS               int               `json:"fps,omitempty"`
+	Delay             int               `json:"delay,omitempty"`
+	Timeout           int               `json:"timeout,omitempty"`
+	WaitUntil         string            `json:"waitUntil,omitempty"`
+	WaitForSelector   string            `json:"waitForSelector,omitempty"`
+	DarkMode          bool              `json:"darkMode,omitempty"`
+	BlockAds          bool              `json:"blockAds,omitempty"`
+	BlockCookieBanners bool             `json:"blockCookieBanners,omitempty"`
+	CSS               string            `json:"css,omitempty"`
+	JavaScript        string            `json:"javascript,omitempty"`
+	HideSelectors     []string          `json:"hideSelectors,omitempty"`
+	UserAgent         string            `json:"userAgent,omitempty"`
+	Cookies           []Cookie          `json:"cookies,omitempty"`
+	ResponseType      string            `json:"responseType,omitempty"`
+	Scroll            bool              `json:"scroll,omitempty"`
+	ScrollDelay       *int              `json:"scrollDelay,omitempty"`
+	ScrollDuration    *int              `json:"scrollDuration,omitempty"`
+	ScrollBy          *int              `json:"scrollBy,omitempty"`
+	ScrollEasing      ScrollEasing      `json:"scrollEasing,omitempty"`
+	ScrollBack        bool              `json:"scrollBack,omitempty"`
+	ScrollComplete    bool              `json:"scrollComplete,omitempty"`
+}
+
+// VideoResult represents the result of a video capture.
+type VideoResult struct {
+	Success  bool   `json:"success"`
+	Data     string `json:"data,omitempty"`
+	Format   string `json:"format"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
+	FileSize int    `json:"fileSize"`
+	Duration int    `json:"duration"`
+	Took     int    `json:"took"`
 }
 
 // ScreenshotMetadata represents page metadata from screenshot.

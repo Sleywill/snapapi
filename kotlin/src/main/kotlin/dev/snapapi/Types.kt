@@ -191,7 +191,70 @@ data class ScreenshotOptions(
     val cacheTtl: Int? = null,
     val responseType: String? = null,
     val includeMetadata: Boolean? = null,
-    val extractMetadata: ExtractMetadata? = null
+    val extractMetadata: ExtractMetadata? = null,
+    val failIfContentMissing: List<String>? = null,
+    val failIfContentContains: List<String>? = null
+)
+
+/**
+ * Scroll easing function for video capture.
+ */
+enum class ScrollEasing(val value: String) {
+    @SerialName("linear") LINEAR("linear"),
+    @SerialName("ease_in") EASE_IN("ease_in"),
+    @SerialName("ease_out") EASE_OUT("ease_out"),
+    @SerialName("ease_in_out") EASE_IN_OUT("ease_in_out"),
+    @SerialName("ease_in_out_quint") EASE_IN_OUT_QUINT("ease_in_out_quint")
+}
+
+/**
+ * Video capture options.
+ */
+@Serializable
+data class VideoOptions(
+    val url: String,
+    val format: String? = "mp4",
+    val quality: Int? = null,
+    val width: Int? = 1280,
+    val height: Int? = 720,
+    val device: String? = null,
+    val duration: Int? = 5000,
+    val fps: Int? = 24,
+    val delay: Int? = null,
+    val timeout: Int? = 60000,
+    val waitUntil: String? = null,
+    val waitForSelector: String? = null,
+    val darkMode: Boolean? = null,
+    val blockAds: Boolean? = null,
+    val blockCookieBanners: Boolean? = null,
+    val css: String? = null,
+    val javascript: String? = null,
+    val hideSelectors: List<String>? = null,
+    val userAgent: String? = null,
+    val cookies: List<Cookie>? = null,
+    val responseType: String? = null,
+    val scroll: Boolean? = null,
+    val scrollDelay: Int? = null,
+    val scrollDuration: Int? = null,
+    val scrollBy: Int? = null,
+    val scrollEasing: ScrollEasing? = null,
+    val scrollBack: Boolean? = null,
+    val scrollComplete: Boolean? = null
+)
+
+/**
+ * Video capture result.
+ */
+@Serializable
+data class VideoResult(
+    val success: Boolean,
+    val data: String? = null,
+    val format: String,
+    val width: Int,
+    val height: Int,
+    val fileSize: Int,
+    val duration: Int,
+    val took: Int
 )
 
 /**

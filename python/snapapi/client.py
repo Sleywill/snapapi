@@ -23,6 +23,9 @@ from .types import (
     ThumbnailOptions,
     ExtractMetadata,
     DevicePreset,
+    VideoOptions,
+    VideoResult,
+    ScrollEasing,
 )
 
 
@@ -317,6 +320,124 @@ class SnapAPI:
             kwargs["pdf_options"] = pdf_options
 
         return self.screenshot(url=url, html=html, **kwargs)
+
+    def video(
+        self,
+        url: str,
+        format: str = "mp4",
+        quality: Optional[int] = None,
+        width: int = 1280,
+        height: int = 720,
+        device: Optional[DevicePreset] = None,
+        duration: int = 5000,
+        fps: int = 24,
+        delay: int = 0,
+        timeout: int = 60000,
+        wait_until: Optional[str] = None,
+        wait_for_selector: Optional[str] = None,
+        dark_mode: bool = False,
+        block_ads: bool = False,
+        block_cookie_banners: bool = False,
+        css: Optional[str] = None,
+        javascript: Optional[str] = None,
+        hide_selectors: Optional[List[str]] = None,
+        user_agent: Optional[str] = None,
+        cookies: Optional[List[Cookie]] = None,
+        response_type: str = "binary",
+        scroll: bool = False,
+        scroll_delay: Optional[int] = None,
+        scroll_duration: Optional[int] = None,
+        scroll_by: Optional[int] = None,
+        scroll_easing: Optional[str] = None,
+        scroll_back: bool = False,
+        scroll_complete: bool = False,
+    ) -> Union[bytes, VideoResult]:
+        """
+        Capture a video of the specified URL with optional scroll animation.
+
+        Args:
+            url: URL to capture
+            format: Output format ('mp4', 'webm', 'gif')
+            quality: Video quality 1-100
+            width: Viewport width (100-1920)
+            height: Viewport height (100-1080)
+            device: Device preset name
+            duration: Video duration in ms (1000-30000)
+            fps: Frames per second (1-30)
+            delay: Delay before starting capture (ms)
+            timeout: Max wait time in ms
+            wait_until: Wait event ('load', 'domcontentloaded', 'networkidle')
+            wait_for_selector: Wait for element before capture
+            dark_mode: Emulate dark mode
+            block_ads: Block ads
+            block_cookie_banners: Hide cookie consent banners
+            css: Custom CSS to inject
+            javascript: JS to execute before capture
+            hide_selectors: CSS selectors to hide
+            user_agent: Custom User-Agent
+            cookies: Cookies to set
+            response_type: 'binary', 'base64', or 'json'
+            scroll: Enable scroll animation video
+            scroll_delay: Delay between scroll steps in ms (0-5000)
+            scroll_duration: Duration of each scroll animation in ms (100-5000)
+            scroll_by: Pixels to scroll each step (100-2000)
+            scroll_easing: Easing function ('linear', 'ease_in', 'ease_out', 'ease_in_out', 'ease_in_out_quint')
+            scroll_back: Scroll back to top at the end
+            scroll_complete: Ensure entire page is scrolled
+
+        Returns:
+            bytes if response_type is 'binary', VideoResult otherwise
+
+        Example:
+            >>> video = client.video(
+            ...     url='https://example.com',
+            ...     scroll=True,
+            ...     scroll_duration=1500,
+            ...     scroll_easing='ease_in_out',
+            ...     scroll_back=True
+            ... )
+            >>> with open('scroll.mp4', 'wb') as f:
+            ...     f.write(video)
+        """
+        options = VideoOptions(
+            url=url,
+            format=format,
+            quality=quality,
+            width=width,
+            height=height,
+            device=device,
+            duration=duration,
+            fps=fps,
+            delay=delay,
+            timeout=timeout,
+            wait_until=wait_until,
+            wait_for_selector=wait_for_selector,
+            dark_mode=dark_mode,
+            block_ads=block_ads,
+            block_cookie_banners=block_cookie_banners,
+            css=css,
+            javascript=javascript,
+            hide_selectors=hide_selectors,
+            user_agent=user_agent,
+            cookies=cookies,
+            response_type=response_type,
+            scroll=scroll,
+            scroll_delay=scroll_delay,
+            scroll_duration=scroll_duration,
+            scroll_by=scroll_by,
+            scroll_easing=scroll_easing,
+            scroll_back=scroll_back,
+            scroll_complete=scroll_complete,
+        )
+
+        response = self._request("POST", "/v1/video", options.to_dict())
+
+        if response_type == "binary":
+            return response
+        elif response_type in ("json", "base64"):
+            return VideoResult.from_dict(json.loads(response))
+        else:
+            return response
 
     def batch(
         self,

@@ -241,6 +241,8 @@ class ScreenshotOptions:
     response_type: Literal["binary", "base64", "json"] = "binary"
     include_metadata: bool = False
     extract_metadata: Optional[ExtractMetadata] = None
+    fail_if_content_missing: Optional[List[str]] = None
+    fail_if_content_contains: Optional[List[str]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API request."""
@@ -349,6 +351,10 @@ class ScreenshotOptions:
             result["includeMetadata"] = True
         if self.extract_metadata:
             result["extractMetadata"] = self.extract_metadata.to_dict()
+        if self.fail_if_content_missing:
+            result["failIfContentMissing"] = self.fail_if_content_missing
+        if self.fail_if_content_contains:
+            result["failIfContentContains"] = self.fail_if_content_contains
 
         return result
 
@@ -415,6 +421,125 @@ class ScreenshotResult:
             data=data.get("data"),
             metadata=metadata,
             thumbnail=data.get("thumbnail"),
+        )
+
+
+ScrollEasing = Literal["linear", "ease_in", "ease_out", "ease_in_out", "ease_in_out_quint"]
+
+
+@dataclass
+class VideoOptions:
+    """Options for video capture."""
+    url: str
+    format: Literal["mp4", "webm", "gif"] = "mp4"
+    quality: Optional[int] = None
+    width: int = 1280
+    height: int = 720
+    device: Optional[DevicePreset] = None
+    duration: int = 5000
+    fps: int = 24
+    delay: int = 0
+    timeout: int = 60000
+    wait_until: Optional[Literal["load", "domcontentloaded", "networkidle"]] = None
+    wait_for_selector: Optional[str] = None
+    dark_mode: bool = False
+    block_ads: bool = False
+    block_cookie_banners: bool = False
+    css: Optional[str] = None
+    javascript: Optional[str] = None
+    hide_selectors: Optional[List[str]] = None
+    user_agent: Optional[str] = None
+    cookies: Optional[List[Cookie]] = None
+    response_type: Literal["binary", "base64", "json"] = "binary"
+    scroll: bool = False
+    scroll_delay: Optional[int] = None
+    scroll_duration: Optional[int] = None
+    scroll_by: Optional[int] = None
+    scroll_easing: Optional[ScrollEasing] = None
+    scroll_back: bool = False
+    scroll_complete: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for API request."""
+        result = {
+            "url": self.url,
+            "format": self.format,
+            "width": self.width,
+            "height": self.height,
+            "duration": self.duration,
+            "fps": self.fps,
+        }
+        if self.quality is not None:
+            result["quality"] = self.quality
+        if self.device:
+            result["device"] = self.device
+        if self.delay > 0:
+            result["delay"] = self.delay
+        if self.timeout != 60000:
+            result["timeout"] = self.timeout
+        if self.wait_until:
+            result["waitUntil"] = self.wait_until
+        if self.wait_for_selector:
+            result["waitForSelector"] = self.wait_for_selector
+        if self.dark_mode:
+            result["darkMode"] = True
+        if self.block_ads:
+            result["blockAds"] = True
+        if self.block_cookie_banners:
+            result["blockCookieBanners"] = True
+        if self.css:
+            result["css"] = self.css
+        if self.javascript:
+            result["javascript"] = self.javascript
+        if self.hide_selectors:
+            result["hideSelectors"] = self.hide_selectors
+        if self.user_agent:
+            result["userAgent"] = self.user_agent
+        if self.cookies:
+            result["cookies"] = [c.to_dict() for c in self.cookies]
+        if self.response_type != "binary":
+            result["responseType"] = self.response_type
+        if self.scroll:
+            result["scroll"] = True
+        if self.scroll_delay is not None:
+            result["scrollDelay"] = self.scroll_delay
+        if self.scroll_duration is not None:
+            result["scrollDuration"] = self.scroll_duration
+        if self.scroll_by is not None:
+            result["scrollBy"] = self.scroll_by
+        if self.scroll_easing:
+            result["scrollEasing"] = self.scroll_easing
+        if self.scroll_back:
+            result["scrollBack"] = True
+        if self.scroll_complete:
+            result["scrollComplete"] = True
+        return result
+
+
+@dataclass
+class VideoResult:
+    """Result of a video capture."""
+    success: bool
+    format: str
+    width: int
+    height: int
+    file_size: int
+    duration: int
+    took: int
+    data: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "VideoResult":
+        """Create from API response dictionary."""
+        return cls(
+            success=data.get("success", False),
+            format=data.get("format", "mp4"),
+            width=data.get("width", 0),
+            height=data.get("height", 0),
+            file_size=data.get("fileSize", 0),
+            duration=data.get("duration", 0),
+            took=data.get("took", 0),
+            data=data.get("data"),
         )
 
 

@@ -206,6 +206,10 @@ export interface ScreenshotOptions {
   includeMetadata?: boolean;
   /** Additional metadata to extract */
   extractMetadata?: ExtractMetadataOptions;
+  /** Fail if these text strings are NOT found on the page (max 10 items, 200 chars each) */
+  failIfContentMissing?: string[];
+  /** Fail if these text strings ARE found on the page (max 10 items, 200 chars each) */
+  failIfContentContains?: string[];
 }
 
 export interface ScreenshotMetadata {
@@ -250,6 +254,86 @@ export interface ScreenshotResult {
   metadata?: ScreenshotMetadata;
   /** Thumbnail data (when thumbnail is enabled) */
   thumbnail?: string;
+}
+
+export type ScrollEasing = 'linear' | 'ease_in' | 'ease_out' | 'ease_in_out' | 'ease_in_out_quint';
+
+export interface VideoOptions {
+  /** URL to capture */
+  url: string;
+  /** Video format: 'mp4' | 'webm' | 'gif' */
+  format?: 'mp4' | 'webm' | 'gif';
+  /** Video quality 1-100 */
+  quality?: number;
+  /** Viewport width (100-1920) */
+  width?: number;
+  /** Viewport height (100-1080) */
+  height?: number;
+  /** Device preset */
+  device?: DevicePreset;
+  /** Video duration in ms (1000-30000) */
+  duration?: number;
+  /** Frames per second (1-30) */
+  fps?: number;
+  /** Delay before starting capture (ms) */
+  delay?: number;
+  /** Max wait time in ms */
+  timeout?: number;
+  /** Wait until event */
+  waitUntil?: 'load' | 'domcontentloaded' | 'networkidle';
+  /** Wait for element before capture */
+  waitForSelector?: string;
+  /** Emulate dark mode */
+  darkMode?: boolean;
+  /** Block ads */
+  blockAds?: boolean;
+  /** Block cookie banners */
+  blockCookieBanners?: boolean;
+  /** Custom CSS to inject */
+  css?: string;
+  /** JavaScript to execute before capture */
+  javascript?: string;
+  /** CSS selectors to hide */
+  hideSelectors?: string[];
+  /** Custom User-Agent */
+  userAgent?: string;
+  /** Cookies to set */
+  cookies?: Cookie[];
+  /** Response type: 'binary' | 'base64' | 'json' */
+  responseType?: 'binary' | 'base64' | 'json';
+  /** Enable scroll animation video */
+  scroll?: boolean;
+  /** Delay between scroll steps in ms (0-5000) */
+  scrollDelay?: number;
+  /** Duration of each scroll animation in ms (100-5000) */
+  scrollDuration?: number;
+  /** Pixels to scroll each step (100-2000) */
+  scrollBy?: number;
+  /** Easing function for scroll animation */
+  scrollEasing?: ScrollEasing;
+  /** Scroll back to top at the end */
+  scrollBack?: boolean;
+  /** Ensure entire page is scrolled */
+  scrollComplete?: boolean;
+}
+
+export interface VideoResult {
+  /** Whether capture was successful */
+  success: boolean;
+  /** Base64-encoded video data (when responseType is 'json' or 'base64') */
+  data?: string;
+  /** Video format */
+  format: string;
+  /** Video width */
+  width: number;
+  /** Video height */
+  height: number;
+  /** File size in bytes */
+  fileSize: number;
+  /** Video duration in ms */
+  duration: number;
+  /** Processing time in ms */
+  took: number;
 }
 
 export interface BatchOptions {
@@ -486,6 +570,43 @@ export class SnapAPI {
     });
 
     return Buffer.from(await response.arrayBuffer());
+  }
+
+  /**
+   * Capture a video of a webpage with optional scroll animation
+   *
+   * @param options - Video options
+   * @returns Video result or binary data
+   *
+   * @example
+   * ```typescript
+   * // Capture a scroll video
+   * const video = await client.video({
+   *   url: 'https://example.com',
+   *   format: 'mp4',
+   *   scroll: true,
+   *   scrollDuration: 1500,
+   *   scrollEasing: 'ease_in_out',
+   *   scrollBack: true
+   * });
+   * fs.writeFileSync('scroll.mp4', video);
+   * ```
+   */
+  async video(options: VideoOptions): Promise<VideoResult | Buffer> {
+    if (!options.url) {
+      throw new Error('URL is required');
+    }
+
+    const response = await this.request('/v1/video', {
+      method: 'POST',
+      body: JSON.stringify(options),
+    });
+
+    if (options.responseType === 'binary' || !options.responseType) {
+      return Buffer.from(await response.arrayBuffer());
+    }
+
+    return response.json() as Promise<VideoResult>;
   }
 
   /**

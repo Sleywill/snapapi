@@ -280,6 +280,8 @@ public struct ScreenshotOptions: Codable, Sendable {
     public var responseType: String?
     public var includeMetadata: Bool?
     public var extractMetadata: ExtractMetadata?
+    public var failIfContentMissing: [String]?
+    public var failIfContentContains: [String]?
 
     public init(
         url: String? = nil,
@@ -334,7 +336,9 @@ public struct ScreenshotOptions: Codable, Sendable {
         cacheTtl: Int? = nil,
         responseType: String? = nil,
         includeMetadata: Bool? = nil,
-        extractMetadata: ExtractMetadata? = nil
+        extractMetadata: ExtractMetadata? = nil,
+        failIfContentMissing: [String]? = nil,
+        failIfContentContains: [String]? = nil
     ) {
         self.url = url
         self.html = html
@@ -389,7 +393,128 @@ public struct ScreenshotOptions: Codable, Sendable {
         self.responseType = responseType
         self.includeMetadata = includeMetadata
         self.extractMetadata = extractMetadata
+        self.failIfContentMissing = failIfContentMissing
+        self.failIfContentContains = failIfContentContains
     }
+}
+
+// MARK: - Scroll Easing
+
+/// Easing function for scroll animation.
+public enum ScrollEasing: String, Codable, Sendable {
+    case linear = "linear"
+    case easeIn = "ease_in"
+    case easeOut = "ease_out"
+    case easeInOut = "ease_in_out"
+    case easeInOutQuint = "ease_in_out_quint"
+}
+
+// MARK: - Video Options
+
+/// Video capture options.
+public struct VideoOptions: Codable, Sendable {
+    public var url: String
+    public var format: String?
+    public var quality: Int?
+    public var width: Int?
+    public var height: Int?
+    public var device: String?
+    public var duration: Int?
+    public var fps: Int?
+    public var delay: Int?
+    public var timeout: Int?
+    public var waitUntil: String?
+    public var waitForSelector: String?
+    public var darkMode: Bool?
+    public var blockAds: Bool?
+    public var blockCookieBanners: Bool?
+    public var css: String?
+    public var javascript: String?
+    public var hideSelectors: [String]?
+    public var userAgent: String?
+    public var cookies: [Cookie]?
+    public var responseType: String?
+    public var scroll: Bool?
+    public var scrollDelay: Int?
+    public var scrollDuration: Int?
+    public var scrollBy: Int?
+    public var scrollEasing: ScrollEasing?
+    public var scrollBack: Bool?
+    public var scrollComplete: Bool?
+
+    public init(
+        url: String,
+        format: String? = "mp4",
+        quality: Int? = nil,
+        width: Int? = 1280,
+        height: Int? = 720,
+        device: String? = nil,
+        duration: Int? = 5000,
+        fps: Int? = 24,
+        delay: Int? = nil,
+        timeout: Int? = 60000,
+        waitUntil: String? = nil,
+        waitForSelector: String? = nil,
+        darkMode: Bool? = nil,
+        blockAds: Bool? = nil,
+        blockCookieBanners: Bool? = nil,
+        css: String? = nil,
+        javascript: String? = nil,
+        hideSelectors: [String]? = nil,
+        userAgent: String? = nil,
+        cookies: [Cookie]? = nil,
+        responseType: String? = nil,
+        scroll: Bool? = nil,
+        scrollDelay: Int? = nil,
+        scrollDuration: Int? = nil,
+        scrollBy: Int? = nil,
+        scrollEasing: ScrollEasing? = nil,
+        scrollBack: Bool? = nil,
+        scrollComplete: Bool? = nil
+    ) {
+        self.url = url
+        self.format = format
+        self.quality = quality
+        self.width = width
+        self.height = height
+        self.device = device
+        self.duration = duration
+        self.fps = fps
+        self.delay = delay
+        self.timeout = timeout
+        self.waitUntil = waitUntil
+        self.waitForSelector = waitForSelector
+        self.darkMode = darkMode
+        self.blockAds = blockAds
+        self.blockCookieBanners = blockCookieBanners
+        self.css = css
+        self.javascript = javascript
+        self.hideSelectors = hideSelectors
+        self.userAgent = userAgent
+        self.cookies = cookies
+        self.responseType = responseType
+        self.scroll = scroll
+        self.scrollDelay = scrollDelay
+        self.scrollDuration = scrollDuration
+        self.scrollBy = scrollBy
+        self.scrollEasing = scrollEasing
+        self.scrollBack = scrollBack
+        self.scrollComplete = scrollComplete
+    }
+}
+
+// MARK: - Video Result
+
+/// Video capture result.
+public struct VideoResult: Codable, Sendable {
+    public let success: Bool
+    public let data: String?
+    public let format: String
+    public let width: Int
+    public let height: Int
+    public let fileSize: Int
+    public let duration: Int
+    public let took: Int
 }
 
 // MARK: - Screenshot Metadata
