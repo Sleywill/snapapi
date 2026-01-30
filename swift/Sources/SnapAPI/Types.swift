@@ -449,10 +449,10 @@ public struct VideoOptions: Codable, Sendable {
         width: Int? = 1280,
         height: Int? = 720,
         device: String? = nil,
-        duration: Int? = 5000,
+        duration: Int? = 5,  // seconds (max 30)
         fps: Int? = 24,
         delay: Int? = nil,
-        timeout: Int? = 60000,
+        timeout: Int? = 60,  // seconds
         waitUntil: String? = nil,
         waitForSelector: String? = nil,
         darkMode: Bool? = nil,
