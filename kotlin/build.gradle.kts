@@ -59,9 +59,9 @@ publishing {
                 }
 
                 scm {
-                    connection.set("scm:git:git://github.com/Sleywill/snapapi-kotlin.git")
-                    developerConnection.set("scm:git:ssh://github.com/Sleywill/snapapi-kotlin.git")
-                    url.set("https://github.com/Sleywill/snapapi-kotlin")
+                    connection.set("scm:git:git://github.com/Sleywill/snapapi.git")
+                    developerConnection.set("scm:git:ssh://github.com/Sleywill/snapapi.git")
+                    url.set("https://github.com/Sleywill/snapapi")
                 }
             }
         }

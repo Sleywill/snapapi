@@ -4,28 +4,51 @@ Official Kotlin/Android SDK for [SnapAPI](https://snapapi.pics) - Lightning-fast
 
 ## Installation
 
-### Gradle (Kotlin DSL)
+### JitPack (Recommended)
+
+Add JitPack repository to your root `build.gradle.kts`:
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+}
+```
+
+Add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("dev.snapapi:snapapi-kotlin:1.1.0")
+    implementation("com.github.Sleywill.snapapi:kotlin:1.1.0")
 }
 ```
 
 ### Gradle (Groovy)
 
 ```groovy
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
-    implementation 'dev.snapapi:snapapi-kotlin:1.1.0'
+    implementation 'com.github.Sleywill.snapapi:kotlin:1.1.0'
 }
 ```
 
 ### Maven
 
 ```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
 <dependency>
-    <groupId>dev.snapapi</groupId>
-    <artifactId>snapapi-kotlin</artifactId>
+    <groupId>com.github.Sleywill.snapapi</groupId>
+    <artifactId>kotlin</artifactId>
     <version>1.1.0</version>
 </dependency>
 ```

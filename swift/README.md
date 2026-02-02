@@ -10,13 +10,13 @@ Add the following to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/snapapi-dev/snapapi-swift.git", from: "1.1.0")
+    .package(url: "https://github.com/Sleywill/snapapi.git", from: "1.1.0")
 ]
 ```
 
 Or add it through Xcode:
 1. File → Add Packages...
-2. Enter: `https://github.com/snapapi-dev/snapapi-swift.git`
+2. Enter: `https://github.com/Sleywill/snapapi.git`
 3. Select version: `1.1.0`
 
 ### CocoaPods
