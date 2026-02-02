@@ -410,3 +410,89 @@ data class ErrorDetails(
     val message: String,
     val details: Map<String, kotlinx.serialization.json.JsonElement>? = null
 )
+package dev.snapapi
+
+import kotlinx.serialization.Serializable
+
+// Extract API Types
+
+enum class ExtractType {
+    markdown, text, html, article, structured, links, images, metadata
+}
+
+@Serializable
+data class ExtractOptions(
+    val url: String,
+    val type: ExtractType? = ExtractType.markdown,
+    val selector: String? = null,
+    val waitFor: String? = null,
+    val timeout: Int? = null,
+    val darkMode: Boolean? = null,
+    val blockAds: Boolean? = null,
+    val blockCookieBanners: Boolean? = null,
+    val maxLength: Int? = null,
+    val cleanOutput: Boolean? = null
+)
+
+@Serializable
+data class ExtractResult(
+    val success: Boolean,
+    val type: String,
+    val url: String,
+    val data: kotlinx.serialization.json.JsonElement,
+    val responseTime: Int
+)
+
+@Serializable
+data class ExtractArticle(
+    val title: String,
+    val byline: String? = null,
+    val content: String,
+    val textContent: String? = null,
+    val excerpt: String? = null,
+    val siteName: String? = null,
+    val publishedTime: String? = null,
+    val length: Int? = null,
+    val readingTime: Int? = null
+)
+
+@Serializable
+data class ExtractStructured(
+    val url: String,
+    val title: String,
+    val author: String,
+    val publishedTime: String,
+    val description: String,
+    val image: String? = null,
+    val wordCount: Int,
+    val content: String
+)
+
+@Serializable
+data class ExtractLink(
+    val text: String,
+    val href: String
+)
+
+@Serializable
+data class ExtractImage(
+    val src: String,
+    val alt: String,
+    val title: String? = null,
+    val width: Int? = null,
+    val height: Int? = null
+)
+
+@Serializable
+data class ExtractPageMetadata(
+    val title: String,
+    val url: String,
+    val description: String,
+    val keywords: String? = null,
+    val author: String? = null,
+    val ogTitle: String? = null,
+    val ogDescription: String? = null,
+    val ogImage: String? = null,
+    val canonical: String? = null,
+    val favicon: String? = null
+)

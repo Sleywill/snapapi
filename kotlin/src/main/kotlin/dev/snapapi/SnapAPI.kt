@@ -213,6 +213,68 @@ class SnapAPI(
     /**
      * Perform an HTTP request to the API.
      */
+
+    // Extract API
+    
+    /**
+     * Extract content from a webpage.
+     */
+    suspend fun extract(options: ExtractOptions): ExtractResult {
+        require(options.url.isNotBlank()) { "URL is required" }
+        
+        val response = doRequest("POST", "/v1/extract", options)
+        return json.decodeFromString(response.decodeToString())
+    }
+    
+    /**
+     * Extract markdown from a webpage.
+     */
+    suspend fun extractMarkdown(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.markdown))
+    }
+    
+    /**
+     * Extract article content from a webpage.
+     */
+    suspend fun extractArticle(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.article))
+    }
+    
+    /**
+     * Extract structured data for LLM/RAG workflows.
+     */
+    suspend fun extractStructured(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.structured))
+    }
+    
+    /**
+     * Extract plain text from a webpage.
+     */
+    suspend fun extractText(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.text))
+    }
+    
+    /**
+     * Extract all links from a webpage.
+     */
+    suspend fun extractLinks(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.links))
+    }
+    
+    /**
+     * Extract all images from a webpage.
+     */
+    suspend fun extractImages(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.images))
+    }
+    
+    /**
+     * Extract page metadata from a webpage.
+     */
+    suspend fun extractMetadata(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.metadata))
+    }
+
     private suspend fun <T> doRequest(method: String, path: String, body: T?): ByteArray {
         return withContext(Dispatchers.IO) {
             val url = URL("$baseUrl$path")

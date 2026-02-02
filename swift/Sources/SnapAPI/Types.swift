@@ -746,3 +746,236 @@ public struct AnyCodable: Codable, Sendable {
         }
     }
 }
+// SnapAPI Swift SDK Types
+
+import Foundation
+
+// MARK: - Extract API Types
+
+public enum ExtractType: String, Codable {
+    case markdown
+    case text
+    case html
+    case article
+    case structured
+    case links
+    case images
+    case metadata
+}
+
+public struct ExtractOptions: Encodable {
+    public var url: String
+    public var type: ExtractType?
+    public var selector: String?
+    public var waitFor: String?
+    public var timeout: Int?
+    public var darkMode: Bool?
+    public var blockAds: Bool?
+    public var blockCookieBanners: Bool?
+    public var maxLength: Int?
+    public var cleanOutput: Bool?
+    
+    public init(
+        url: String,
+        type: ExtractType? = .markdown,
+        selector: String? = nil,
+        waitFor: String? = nil,
+        timeout: Int? = nil,
+        darkMode: Bool? = nil,
+        blockAds: Bool? = nil,
+        blockCookieBanners: Bool? = nil,
+        maxLength: Int? = nil,
+        cleanOutput: Bool? = nil
+    ) {
+        self.url = url
+        self.type = type
+        self.selector = selector
+        self.waitFor = waitFor
+        self.timeout = timeout
+        self.darkMode = darkMode
+        self.blockAds = blockAds
+        self.blockCookieBanners = blockCookieBanners
+        self.maxLength = maxLength
+        self.cleanOutput = cleanOutput
+    }
+}
+
+public struct ExtractResult<T: Decodable>: Decodable {
+    public let success: Bool
+    public let type: ExtractType
+    public let url: String
+    public let data: T
+    public let responseTime: Int
+}
+
+public struct ExtractArticle: Decodable {
+    public let title: String
+    public let byline: String?
+    public let content: String
+    public let textContent: String?
+    public let excerpt: String?
+    public let siteName: String?
+    public let publishedTime: String?
+    public let length: Int?
+    public let readingTime: Int?
+}
+
+public struct ExtractStructured: Decodable {
+    public let url: String
+    public let title: String
+    public let author: String
+    public let publishedTime: String
+    public let description: String
+    public let image: String?
+    public let wordCount: Int
+    public let content: String
+}
+
+public struct ExtractLink: Decodable {
+    public let text: String
+    public let href: String
+}
+
+public struct ExtractImage: Decodable {
+    public let src: String
+    public let alt: String
+    public let title: String?
+    public let width: Int?
+    public let height: Int?
+}
+
+public struct ExtractPageMetadata: Decodable {
+    public let title: String
+    public let url: String
+    public let description: String
+    public let keywords: String?
+    public let author: String?
+    public let ogTitle: String?
+    public let ogDescription: String?
+    public let ogImage: String?
+    public let canonical: String?
+    public let favicon: String?
+}
+
+// MARK: - Extract API Types
+
+public enum ExtractType: String, Codable, Sendable {
+    case markdown
+    case text
+    case html
+    case article
+    case structured
+    case links
+    case images
+    case metadata
+}
+
+public struct ExtractOptions: Encodable, Sendable {
+    public var url: String
+    public var type: ExtractType?
+    public var selector: String?
+    public var waitFor: String?
+    public var timeout: Int?
+    public var darkMode: Bool?
+    public var blockAds: Bool?
+    public var blockCookieBanners: Bool?
+    public var maxLength: Int?
+    public var cleanOutput: Bool?
+    
+    public init(
+        url: String,
+        type: ExtractType? = .markdown,
+        selector: String? = nil,
+        waitFor: String? = nil,
+        timeout: Int? = nil,
+        darkMode: Bool? = nil,
+        blockAds: Bool? = nil,
+        blockCookieBanners: Bool? = nil,
+        maxLength: Int? = nil,
+        cleanOutput: Bool? = nil
+    ) {
+        self.url = url
+        self.type = type
+        self.selector = selector
+        self.waitFor = waitFor
+        self.timeout = timeout
+        self.darkMode = darkMode
+        self.blockAds = blockAds
+        self.blockCookieBanners = blockCookieBanners
+        self.maxLength = maxLength
+        self.cleanOutput = cleanOutput
+    }
+}
+
+public struct ExtractResult: Decodable, Sendable {
+    public let success: Bool
+    public let type: ExtractType
+    public let url: String
+    public let responseTime: Int
+    
+    // Data can be various types depending on extract type
+    private enum CodingKeys: String, CodingKey {
+        case success, type, url, responseTime, data
+    }
+    
+    // Store raw data for flexible access
+    public let rawData: Any?
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        success = try container.decode(Bool.self, forKey: .success)
+        type = try container.decode(ExtractType.self, forKey: .type)
+        url = try container.decode(String.self, forKey: .url)
+        responseTime = try container.decode(Int.self, forKey: .responseTime)
+        rawData = nil // Will be parsed separately based on type
+    }
+}
+
+public struct ExtractArticle: Decodable, Sendable {
+    public let title: String
+    public let byline: String?
+    public let content: String
+    public let textContent: String?
+    public let excerpt: String?
+    public let siteName: String?
+    public let publishedTime: String?
+    public let length: Int?
+    public let readingTime: Int?
+}
+
+public struct ExtractStructured: Decodable, Sendable {
+    public let url: String
+    public let title: String
+    public let author: String
+    public let publishedTime: String
+    public let description: String
+    public let image: String?
+    public let wordCount: Int
+    public let content: String
+}
+
+public struct ExtractLink: Decodable, Sendable {
+    public let text: String
+    public let href: String
+}
+
+public struct ExtractImage: Decodable, Sendable {
+    public let src: String
+    public let alt: String
+    public let title: String?
+    public let width: Int?
+    public let height: Int?
+}
+
+public struct ExtractPageMetadata: Decodable, Sendable {
+    public let title: String
+    public let url: String
+    public let description: String
+    public let keywords: String?
+    public let author: String?
+    public let ogTitle: String?
+    public let ogDescription: String?
+    public let ogImage: String?
+    public let canonical: String?
+    public let favicon: String?
+}

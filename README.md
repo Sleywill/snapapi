@@ -575,3 +575,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   <a href="https://snapapi.pics/blog.html">Blog</a> •
   <a href="https://twitter.com/snapapi">Twitter</a>
 </p>
+
+## Extract API (All SDKs)
+
+All SDKs support the Extract API for extracting clean content from webpages - perfect for LLM/RAG workflows.
+
+### Swift
+```swift
+let result = try await client.extractMarkdown("https://example.com")
+let article = try await client.extractArticle("https://blog.example.com")
+let structured = try await client.extractStructured("https://example.com")
+```
+
+### Kotlin
+```kotlin
+val result = client.extractMarkdown("https://example.com")
+val article = client.extractArticle("https://blog.example.com")
+val structured = client.extractStructured("https://example.com")
+```
+
+Available extract types: `markdown`, `text`, `html`, `article`, `structured`, `links`, `images`, `metadata`

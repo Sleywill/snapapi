@@ -223,6 +223,52 @@ public actor SnapAPI {
 
     // MARK: - Private Methods
 
+
+    // MARK: - Extract API
+    
+    /// Extract content from a webpage.
+    public func extract(_ options: ExtractOptions) async throws -> Data {
+        guard !options.url.isEmpty else {
+            throw SnapAPIError(code: "INVALID_PARAMS", message: "URL is required", statusCode: 400)
+        }
+        return try await doRequest("POST", path: "/v1/extract", body: options)
+    }
+    
+    /// Extract markdown from a webpage.
+    public func extractMarkdown(_ url: String) async throws -> Data {
+        return try await extract(ExtractOptions(url: url, type: .markdown))
+    }
+    
+    /// Extract article content from a webpage.
+    public func extractArticle(_ url: String) async throws -> Data {
+        return try await extract(ExtractOptions(url: url, type: .article))
+    }
+    
+    /// Extract structured data for LLM/RAG workflows.
+    public func extractStructured(_ url: String) async throws -> Data {
+        return try await extract(ExtractOptions(url: url, type: .structured))
+    }
+    
+    /// Extract plain text from a webpage.
+    public func extractText(_ url: String) async throws -> Data {
+        return try await extract(ExtractOptions(url: url, type: .text))
+    }
+    
+    /// Extract all links from a webpage.
+    public func extractLinks(_ url: String) async throws -> Data {
+        return try await extract(ExtractOptions(url: url, type: .links))
+    }
+    
+    /// Extract all images from a webpage.
+    public func extractImages(_ url: String) async throws -> Data {
+        return try await extract(ExtractOptions(url: url, type: .images))
+    }
+    
+    /// Extract page metadata from a webpage.
+    public func extractMetadata(_ url: String) async throws -> Data {
+        return try await extract(ExtractOptions(url: url, type: .metadata))
+    }
+
     private func doRequest<T: Encodable>(_ method: String, path: String, body: T?) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
             throw SnapAPIError(
