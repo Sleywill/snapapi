@@ -16,7 +16,7 @@ import Foundation
 /// ```
 public actor SnapAPI {
     /// SDK version
-    public static let version = "1.1.1"
+    public static let version = "1.2.0"
 
     /// Default base URL
     public static let defaultBaseURL = "https://api.snapapi.pics"
@@ -57,10 +57,10 @@ public actor SnapAPI {
     /// - Parameter options: Screenshot options
     /// - Returns: Raw image data
     public func screenshot(_ options: ScreenshotOptions) async throws -> Data {
-        guard options.url != nil || options.html != nil else {
+        guard options.url != nil || options.html != nil || options.markdown != nil else {
             throw SnapAPIError(
                 code: "INVALID_PARAMS",
-                message: "Either url or html is required",
+                message: "Either url, html, or markdown is required",
                 statusCode: 400
             )
         }
@@ -118,10 +118,10 @@ public actor SnapAPI {
     /// - Parameter options: Screenshot options (format will be set to pdf)
     /// - Returns: Raw PDF data
     public func pdf(_ options: ScreenshotOptions) async throws -> Data {
-        guard options.url != nil || options.html != nil else {
+        guard options.url != nil || options.html != nil || options.markdown != nil else {
             throw SnapAPIError(
                 code: "INVALID_PARAMS",
-                message: "Either url or html is required",
+                message: "Either url, html, or markdown is required",
                 statusCode: 400
             )
         }
@@ -267,6 +267,41 @@ public actor SnapAPI {
     /// Extract page metadata from a webpage.
     public func extractMetadata(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .metadata))
+    }
+
+    // MARK: - Analyze API
+
+    /// Analyze a webpage using AI (BYOK - Bring Your Own Key).
+    ///
+    /// - Parameter options: Analysis options including LLM provider and API key
+    /// - Returns: Raw JSON response data
+    public func analyze(_ options: AnalyzeOptions) async throws -> Data {
+        guard !options.url.isEmpty else {
+            throw SnapAPIError(code: "INVALID_PARAMS", message: "URL is required", statusCode: 400)
+        }
+        guard !options.prompt.isEmpty else {
+            throw SnapAPIError(code: "INVALID_PARAMS", message: "Prompt is required", statusCode: 400)
+        }
+        guard !options.apiKey.isEmpty else {
+            throw SnapAPIError(code: "INVALID_PARAMS", message: "LLM API key is required", statusCode: 400)
+        }
+        return try await doRequest("POST", path: "/v1/analyze", body: options)
+    }
+
+    // MARK: - Markdown Screenshot
+
+    /// Capture a screenshot from Markdown content.
+    ///
+    /// - Parameters:
+    ///   - markdown: Markdown content to render
+    ///   - options: Additional screenshot options
+    /// - Returns: Raw image data
+    public func screenshotFromMarkdown(_ markdown: String, options: ScreenshotOptions? = nil) async throws -> Data {
+        var opts = options ?? ScreenshotOptions()
+        opts.markdown = markdown
+        opts.url = nil
+        opts.html = nil
+        return try await screenshot(opts)
     }
 
     private func doRequest<T: Encodable>(_ method: String, path: String, body: T?) async throws -> Data {

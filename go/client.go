@@ -24,7 +24,7 @@ import (
 const (
 	defaultBaseURL = "https://api.snapapi.pics"
 	defaultTimeout = 60 * time.Second
-	userAgent      = "snapapi-go/1.1.0"
+	userAgent      = "snapapi-go/1.2.0"
 )
 
 // Client is a SnapAPI client.
@@ -79,10 +79,10 @@ func NewClient(apiKey string, opts ...ClientOption) *Client {
 // Returns the raw image bytes for binary/base64 response types,
 // or use ScreenshotWithMetadata for JSON response with metadata.
 func (c *Client) Screenshot(opts ScreenshotOptions) ([]byte, error) {
-	if opts.URL == "" && opts.HTML == "" {
+	if opts.URL == "" && opts.HTML == "" && opts.Markdown == "" {
 		return nil, &APIError{
 			Code:       ErrInvalidParams,
-			Message:    "URL or HTML is required",
+			Message:    "URL, HTML, or Markdown is required",
 			StatusCode: 400,
 		}
 	}
@@ -200,10 +200,10 @@ func (c *Client) ScreenshotDevice(url string, device DevicePreset, opts *Screens
 
 // PDF generates a PDF from a URL or HTML content.
 func (c *Client) PDF(opts ScreenshotOptions) ([]byte, error) {
-	if opts.URL == "" && opts.HTML == "" {
+	if opts.URL == "" && opts.HTML == "" && opts.Markdown == "" {
 		return nil, &APIError{
 			Code:       ErrInvalidParams,
-			Message:    "URL or HTML is required",
+			Message:    "URL, HTML, or Markdown is required",
 			StatusCode: 400,
 		}
 	}
@@ -294,6 +294,114 @@ func (c *Client) GetCapabilities() (*CapabilitiesResult, error) {
 	}
 
 	var result CapabilitiesResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &result, nil
+}
+
+// ScreenshotFromMarkdown captures a screenshot from Markdown content.
+func (c *Client) ScreenshotFromMarkdown(markdown string, opts *ScreenshotOptions) ([]byte, error) {
+	if markdown == "" {
+		return nil, &APIError{
+			Code:       ErrInvalidParams,
+			Message:    "Markdown content is required",
+			StatusCode: 400,
+		}
+	}
+
+	if opts == nil {
+		opts = &ScreenshotOptions{}
+	}
+	opts.Markdown = markdown
+	opts.URL = ""
+	opts.HTML = ""
+
+	return c.doRequest("POST", "/v1/screenshot", opts)
+}
+
+// Extract extracts content from a webpage.
+func (c *Client) Extract(opts ExtractOptions) (*ExtractResult, error) {
+	if opts.URL == "" {
+		return nil, &APIError{
+			Code:       ErrInvalidParams,
+			Message:    "URL is required",
+			StatusCode: 400,
+		}
+	}
+
+	data, err := c.doRequest("POST", "/v1/extract", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var result ExtractResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &result, nil
+}
+
+// ExtractMarkdown extracts content from a webpage as Markdown.
+func (c *Client) ExtractMarkdown(url string) (*ExtractResult, error) {
+	return c.Extract(ExtractOptions{URL: url, Type: "markdown"})
+}
+
+// ExtractArticle extracts article content from a webpage.
+func (c *Client) ExtractArticle(url string) (*ExtractResult, error) {
+	return c.Extract(ExtractOptions{URL: url, Type: "article"})
+}
+
+// ExtractStructured extracts structured content from a webpage.
+func (c *Client) ExtractStructured(url string) (*ExtractResult, error) {
+	return c.Extract(ExtractOptions{URL: url, Type: "structured"})
+}
+
+// ExtractText extracts plain text content from a webpage.
+func (c *Client) ExtractText(url string) (*ExtractResult, error) {
+	return c.Extract(ExtractOptions{URL: url, Type: "text"})
+}
+
+// ExtractLinks extracts links from a webpage.
+func (c *Client) ExtractLinks(url string) (*ExtractResult, error) {
+	return c.Extract(ExtractOptions{URL: url, Type: "links"})
+}
+
+// ExtractImages extracts image URLs from a webpage.
+func (c *Client) ExtractImages(url string) (*ExtractResult, error) {
+	return c.Extract(ExtractOptions{URL: url, Type: "images"})
+}
+
+// ExtractMetadata extracts metadata from a webpage.
+func (c *Client) ExtractMetadata(url string) (*ExtractResult, error) {
+	return c.Extract(ExtractOptions{URL: url, Type: "metadata"})
+}
+
+// Analyze performs AI-powered analysis of a webpage.
+func (c *Client) Analyze(opts AnalyzeOptions) (*AnalyzeResult, error) {
+	if opts.URL == "" {
+		return nil, &APIError{
+			Code:       ErrInvalidParams,
+			Message:    "URL is required",
+			StatusCode: 400,
+		}
+	}
+	if opts.Prompt == "" {
+		return nil, &APIError{
+			Code:       ErrInvalidParams,
+			Message:    "Prompt is required",
+			StatusCode: 400,
+		}
+	}
+
+	data, err := c.doRequest("POST", "/v1/analyze", opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var result AnalyzeResult
 	if err := json.Unmarshal(data, &result); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}

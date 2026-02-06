@@ -19,7 +19,7 @@ Add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("com.github.Sleywill.snapapi:kotlin:1.1.0")
+    implementation("com.github.Sleywill.snapapi:kotlin:1.2.0")
 }
 ```
 
@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Sleywill.snapapi:kotlin:1.1.0'
+    implementation 'com.github.Sleywill.snapapi:kotlin:1.2.0'
 }
 ```
 
@@ -49,7 +49,7 @@ dependencies {
 <dependency>
     <groupId>com.github.Sleywill.snapapi</groupId>
     <artifactId>kotlin</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -463,6 +463,105 @@ if (status.status == "completed") {
 }
 ```
 
+### Screenshot from Markdown
+
+Render Markdown content as a screenshot:
+
+```kotlin
+val markdown = "# Hello World\n\nThis is **bold** and this is *italic*."
+val screenshot = client.screenshotFromMarkdown(markdown)
+File("markdown.png").writeBytes(screenshot)
+
+// With additional options
+val screenshot = client.screenshotFromMarkdown(
+    markdown = "# Report\n\n| Name | Score |\n|------|-------|\n| Alice | 95 |",
+    options = ScreenshotOptions(width = 800, height = 600, darkMode = true)
+)
+```
+
+Or pass markdown directly to the screenshot method:
+
+```kotlin
+val screenshot = client.screenshot(
+    ScreenshotOptions(markdown = "# Hello World", format = "png", width = 1280)
+)
+```
+
+### Extract Content
+
+Extract content from any webpage in various formats:
+
+```kotlin
+// Extract as Markdown
+val markdown = client.extractMarkdown("https://example.com/blog-post")
+
+// Extract article content (strips navigation, ads, etc.)
+val article = client.extractArticle("https://example.com/news/story")
+
+// Extract plain text
+val text = client.extractText("https://example.com")
+
+// Extract all links
+val links = client.extractLinks("https://example.com")
+
+// Extract all images
+val images = client.extractImages("https://example.com")
+
+// Extract structured data for LLM/RAG
+val structured = client.extractStructured("https://example.com/product")
+
+// Extract page metadata
+val meta = client.extractMetadata("https://example.com")
+```
+
+Use the full `extract()` method for advanced options:
+
+```kotlin
+import dev.snapapi.ExtractOptions
+
+val result = client.extract(
+    ExtractOptions(
+        url = "https://example.com/article",
+        type = ExtractType.markdown,
+        selector = ".article-body",
+        blockAds = true,
+        blockCookieBanners = true,
+        includeImages = true,
+        maxLength = 5000,
+        cleanOutput = true
+    )
+)
+```
+
+### Analyze with AI
+
+Analyze webpage content using AI providers (BYOK - Bring Your Own Key):
+
+```kotlin
+import dev.snapapi.AnalyzeOptions
+
+// Summarize a page with OpenAI
+val result = client.analyze(
+    AnalyzeOptions(
+        url = "https://example.com/article",
+        prompt = "Summarize the main points in 3 bullet points",
+        provider = "openai",
+        apiKey = "sk-..."
+    )
+)
+
+// Analyze with Anthropic Claude
+val result = client.analyze(
+    AnalyzeOptions(
+        url = "https://example.com/product",
+        prompt = "Extract the product name, price, and key features",
+        provider = "anthropic",
+        apiKey = "sk-ant-...",
+        model = "claude-sonnet-4-20250514"
+    )
+)
+```
+
 ### Get API Capabilities
 
 ```kotlin
@@ -560,9 +659,10 @@ fun ScreenshotScreen() {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `url` | String? | - | URL to capture (required if no html) |
-| `html` | String? | - | HTML content to render (required if no url) |
-| `format` | String? | `"png"` | `"png"`, `"jpeg"`, `"webp"`, `"pdf"` |
+| `url` | String? | - | URL to capture (required if no html/markdown) |
+| `html` | String? | - | HTML content to render (required if no url/markdown) |
+| `markdown` | String? | - | Markdown content to render (required if no url/html) |
+| `format` | String? | `"png"` | `"png"`, `"jpeg"`, `"webp"`, `"avif"`, `"pdf"` |
 | `quality` | Int? | `80` | Image quality 1-100 (JPEG/WebP) |
 | `device` | String? | - | Device preset name |
 | `width` | Int? | `1280` | Viewport width (100-3840) |

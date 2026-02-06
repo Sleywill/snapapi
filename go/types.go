@@ -104,6 +104,7 @@ type ExtractMetadata struct {
 type ScreenshotOptions struct {
 	URL                    string            `json:"url,omitempty"`
 	HTML                   string            `json:"html,omitempty"`
+	Markdown               string            `json:"markdown,omitempty"`
 	Format                 string            `json:"format,omitempty"`
 	Quality                *int              `json:"quality,omitempty"`
 	Device                 DevicePreset      `json:"device,omitempty"`
@@ -318,4 +319,60 @@ type Usage struct {
 	Limit     int    `json:"limit"`
 	Remaining int    `json:"remaining"`
 	ResetAt   string `json:"resetAt"`
+}
+
+// ExtractOptions represents options for content extraction.
+type ExtractOptions struct {
+	URL                string `json:"url"`
+	Type               string `json:"type,omitempty"`
+	Selector           string `json:"selector,omitempty"`
+	WaitFor            string `json:"waitFor,omitempty"`
+	Timeout            int    `json:"timeout,omitempty"`
+	DarkMode           bool   `json:"darkMode,omitempty"`
+	BlockAds           bool   `json:"blockAds,omitempty"`
+	BlockCookieBanners bool   `json:"blockCookieBanners,omitempty"`
+	IncludeImages      bool   `json:"includeImages,omitempty"`
+	MaxLength          *int   `json:"maxLength,omitempty"`
+	CleanOutput        bool   `json:"cleanOutput,omitempty"`
+}
+
+// ExtractResult represents the result of a content extraction.
+type ExtractResult struct {
+	Success  bool                   `json:"success"`
+	URL      string                 `json:"url,omitempty"`
+	Type     string                 `json:"type,omitempty"`
+	Content  string                 `json:"content,omitempty"`
+	Title    string                 `json:"title,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Links    []string               `json:"links,omitempty"`
+	Images   []string               `json:"images,omitempty"`
+	Took     int                    `json:"took,omitempty"`
+}
+
+// AnalyzeOptions represents options for AI-powered page analysis.
+type AnalyzeOptions struct {
+	URL               string `json:"url"`
+	Prompt            string `json:"prompt"`
+	Provider          string `json:"provider,omitempty"`
+	APIKey            string `json:"apiKey,omitempty"`
+	Model             string `json:"model,omitempty"`
+	JSONSchema        string `json:"jsonSchema,omitempty"`
+	Timeout           int    `json:"timeout,omitempty"`
+	WaitFor           string `json:"waitFor,omitempty"`
+	BlockAds          bool   `json:"blockAds,omitempty"`
+	BlockCookieBanners bool  `json:"blockCookieBanners,omitempty"`
+	IncludeScreenshot bool   `json:"includeScreenshot,omitempty"`
+	IncludeMetadata   bool   `json:"includeMetadata,omitempty"`
+	MaxContentLength  *int   `json:"maxContentLength,omitempty"`
+}
+
+// AnalyzeResult represents the result of an AI-powered page analysis.
+type AnalyzeResult struct {
+	Success    bool                   `json:"success"`
+	URL        string                 `json:"url,omitempty"`
+	Analysis   string                 `json:"analysis,omitempty"`
+	Structured map[string]interface{} `json:"structured,omitempty"`
+	Screenshot string                 `json:"screenshot,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	Took       int                    `json:"took,omitempty"`
 }

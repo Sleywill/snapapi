@@ -356,6 +356,105 @@ if ($status['status'] === 'completed') {
 }
 ```
 
+### Screenshot from Markdown
+
+```php
+$markdown = "# Hello World\n\nThis is **bold** and this is *italic*.";
+$screenshot = $client->screenshotFromMarkdown($markdown, [
+    'width' => 800,
+    'height' => 600
+]);
+
+file_put_contents('markdown.png', $screenshot);
+```
+
+### Extract Content
+
+Extract structured content from any webpage:
+
+```php
+// Full control with extract()
+$result = $client->extract([
+    'url' => 'https://example.com',
+    'format' => 'markdown'
+]);
+
+echo $result['content'];
+```
+
+#### Convenience Methods
+
+```php
+// Extract as Markdown
+$result = $client->extractMarkdown('https://example.com/blog-post');
+echo $result['content'];
+
+// Extract article content (removes nav, ads, etc.)
+$result = $client->extractArticle('https://example.com/blog-post');
+echo $result['content'];
+
+// Extract structured data
+$result = $client->extractStructured('https://example.com');
+print_r($result['content']);
+
+// Extract plain text
+$result = $client->extractText('https://example.com');
+echo $result['content'];
+
+// Extract all links
+$result = $client->extractLinks('https://example.com');
+print_r($result['content']); // Array of links
+
+// Extract all images
+$result = $client->extractImages('https://example.com');
+print_r($result['content']); // Array of image URLs
+
+// Extract page metadata (title, description, Open Graph, etc.)
+$result = $client->extractMetadata('https://example.com');
+print_r($result['content']);
+```
+
+#### Extract with Options
+
+```php
+$result = $client->extract([
+    'url' => 'https://example.com',
+    'format' => 'markdown',
+    'selector' => '.main-content',
+    'blockAds' => true,
+    'blockCookieBanners' => true,
+    'cookies' => [
+        ['name' => 'session', 'value' => 'abc123', 'domain' => 'example.com']
+    ]
+]);
+```
+
+### Analyze with AI
+
+Analyze a webpage using AI vision:
+
+```php
+$result = $client->analyze([
+    'url' => 'https://example.com',
+    'prompt' => 'Describe the layout and design of this page'
+]);
+
+echo $result['analysis'];
+```
+
+```php
+// Analyze with custom viewport
+$result = $client->analyze([
+    'url' => 'https://example.com',
+    'prompt' => 'List all call-to-action buttons on this page',
+    'device' => 'iphone-15-pro',
+    'darkMode' => true,
+    'blockAds' => true
+]);
+
+echo $result['analysis'];
+```
+
 ### Get API Capabilities
 
 ```php
@@ -377,9 +476,10 @@ print_r($capabilities['capabilities']['features']);
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `url` | string | - | URL to capture (required if no html) |
-| `html` | string | - | HTML content to render (required if no url) |
-| `format` | string | `'png'` | `'png'`, `'jpeg'`, `'webp'`, `'pdf'` |
+| `url` | string | - | URL to capture (required if no html/markdown) |
+| `html` | string | - | HTML content to render (required if no url/markdown) |
+| `markdown` | string | - | Markdown content to render (required if no url/html) |
+| `format` | string | `'png'` | `'png'`, `'jpeg'`, `'webp'`, `'avif'`, `'pdf'` |
 | `quality` | int | `80` | Image quality 1-100 (JPEG/WebP) |
 | `device` | string | - | Device preset name |
 | `width` | int | `1280` | Viewport width (100-3840) |

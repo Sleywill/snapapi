@@ -18,7 +18,7 @@ class Client
 {
     private const DEFAULT_BASE_URL = 'https://api.snapapi.pics';
     private const DEFAULT_TIMEOUT = 60;
-    private const USER_AGENT = 'snapapi-php/1.1.0';
+    private const USER_AGENT = 'snapapi-php/1.2.0';
 
     private string $apiKey;
     private string $baseUrl;
@@ -47,6 +47,7 @@ class Client
      * @param array{
      *     url?: string,
      *     html?: string,
+     *     markdown?: string,
      *     format?: string,
      *     quality?: int,
      *     device?: string,
@@ -106,8 +107,8 @@ class Client
      */
     public function screenshot(array $options)
     {
-        if (empty($options['url']) && empty($options['html'])) {
-            throw new \InvalidArgumentException('Either URL or HTML is required');
+        if (empty($options['url']) && empty($options['html']) && empty($options['markdown'])) {
+            throw new \InvalidArgumentException('Either URL, HTML, or Markdown is required');
         }
 
         $responseType = $options['responseType'] ?? 'binary';
@@ -321,6 +322,177 @@ class Client
     {
         $response = $this->request('GET', '/v1/usage');
         return json_decode($response, true);
+    }
+
+    /**
+     * Extract content from a webpage.
+     *
+     * @param array{
+     *     url: string,
+     *     format?: string,
+     *     selector?: string,
+     *     timeout?: int,
+     *     waitUntil?: string,
+     *     waitForSelector?: string,
+     *     blockAds?: bool,
+     *     blockTrackers?: bool,
+     *     blockCookieBanners?: bool,
+     *     cookies?: array,
+     *     httpAuth?: array,
+     *     proxy?: array,
+     *     userAgent?: string,
+     *     extraHeaders?: array
+     * } $options Extract options
+     * @return array Extracted content
+     * @throws SnapAPIException
+     */
+    public function extract(array $options): array
+    {
+        if (empty($options['url'])) {
+            throw new \InvalidArgumentException('URL is required');
+        }
+
+        $response = $this->request('POST', '/v1/extract', $options);
+        return json_decode($response, true);
+    }
+
+    /**
+     * Extract content from a URL as Markdown.
+     *
+     * @param string $url URL to extract from
+     * @return array Extracted content
+     * @throws SnapAPIException
+     */
+    public function extractMarkdown(string $url): array
+    {
+        return $this->extract(['url' => $url, 'format' => 'markdown']);
+    }
+
+    /**
+     * Extract article content from a URL.
+     *
+     * @param string $url URL to extract from
+     * @return array Extracted content
+     * @throws SnapAPIException
+     */
+    public function extractArticle(string $url): array
+    {
+        return $this->extract(['url' => $url, 'format' => 'article']);
+    }
+
+    /**
+     * Extract structured data from a URL.
+     *
+     * @param string $url URL to extract from
+     * @return array Extracted content
+     * @throws SnapAPIException
+     */
+    public function extractStructured(string $url): array
+    {
+        return $this->extract(['url' => $url, 'format' => 'structured']);
+    }
+
+    /**
+     * Extract plain text from a URL.
+     *
+     * @param string $url URL to extract from
+     * @return array Extracted content
+     * @throws SnapAPIException
+     */
+    public function extractText(string $url): array
+    {
+        return $this->extract(['url' => $url, 'format' => 'text']);
+    }
+
+    /**
+     * Extract all links from a URL.
+     *
+     * @param string $url URL to extract from
+     * @return array Extracted links
+     * @throws SnapAPIException
+     */
+    public function extractLinks(string $url): array
+    {
+        return $this->extract(['url' => $url, 'format' => 'links']);
+    }
+
+    /**
+     * Extract all images from a URL.
+     *
+     * @param string $url URL to extract from
+     * @return array Extracted images
+     * @throws SnapAPIException
+     */
+    public function extractImages(string $url): array
+    {
+        return $this->extract(['url' => $url, 'format' => 'images']);
+    }
+
+    /**
+     * Extract metadata from a URL.
+     *
+     * @param string $url URL to extract from
+     * @return array Extracted metadata
+     * @throws SnapAPIException
+     */
+    public function extractMetadata(string $url): array
+    {
+        return $this->extract(['url' => $url, 'format' => 'metadata']);
+    }
+
+    /**
+     * Analyze a webpage using AI vision.
+     *
+     * @param array{
+     *     url: string,
+     *     prompt?: string,
+     *     format?: string,
+     *     width?: int,
+     *     height?: int,
+     *     device?: string,
+     *     fullPage?: bool,
+     *     delay?: int,
+     *     timeout?: int,
+     *     waitUntil?: string,
+     *     waitForSelector?: string,
+     *     darkMode?: bool,
+     *     blockAds?: bool,
+     *     blockCookieBanners?: bool,
+     *     blockChatWidgets?: bool,
+     *     css?: string,
+     *     javascript?: string,
+     *     hideSelectors?: array,
+     *     cookies?: array,
+     *     httpAuth?: array,
+     *     proxy?: array,
+     *     userAgent?: string,
+     *     extraHeaders?: array
+     * } $options Analyze options
+     * @return array Analysis result
+     * @throws SnapAPIException
+     */
+    public function analyze(array $options): array
+    {
+        if (empty($options['url'])) {
+            throw new \InvalidArgumentException('URL is required');
+        }
+
+        $response = $this->request('POST', '/v1/analyze', $options);
+        return json_decode($response, true);
+    }
+
+    /**
+     * Capture a screenshot from Markdown content.
+     *
+     * @param string $markdown Markdown content to render
+     * @param array $options Additional screenshot options
+     * @return string|array Binary image data or array if responseType is 'json'
+     * @throws SnapAPIException
+     */
+    public function screenshotFromMarkdown(string $markdown, array $options = [])
+    {
+        $options['markdown'] = $markdown;
+        return $this->screenshot($options);
     }
 
     /**

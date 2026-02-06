@@ -139,6 +139,7 @@ data class ExtractMetadata(
 data class ScreenshotOptions(
     val url: String? = null,
     val html: String? = null,
+    val markdown: String? = null,
     val format: String? = null,
     val quality: Int? = null,
     val device: String? = null,
@@ -430,6 +431,7 @@ data class ExtractOptions(
     val darkMode: Boolean? = null,
     val blockAds: Boolean? = null,
     val blockCookieBanners: Boolean? = null,
+    val includeImages: Boolean? = null,
     val maxLength: Int? = null,
     val cleanOutput: Boolean? = null
 )
@@ -495,4 +497,32 @@ data class ExtractPageMetadata(
     val ogImage: String? = null,
     val canonical: String? = null,
     val favicon: String? = null
+)
+
+@Serializable
+data class AnalyzeOptions(
+    val url: String,
+    val prompt: String,
+    val provider: String? = "openai",
+    val apiKey: String,
+    val model: String? = null,
+    val jsonSchema: kotlinx.serialization.json.JsonElement? = null,
+    val timeout: Int? = null,
+    val waitFor: String? = null,
+    val blockAds: Boolean? = null,
+    val blockCookieBanners: Boolean? = null,
+    val includeScreenshot: Boolean? = null,
+    val includeMetadata: Boolean? = null,
+    val maxContentLength: Int? = null
+)
+
+@Serializable
+data class AnalyzeResult(
+    val success: Boolean,
+    val url: String,
+    val metadata: kotlinx.serialization.json.JsonElement? = null,
+    val analysis: kotlinx.serialization.json.JsonElement,
+    val provider: String,
+    val model: String,
+    val responseTime: Int
 )

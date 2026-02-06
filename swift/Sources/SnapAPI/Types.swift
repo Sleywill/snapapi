@@ -229,6 +229,7 @@ public struct ExtractMetadata: Codable, Sendable {
 public struct ScreenshotOptions: Codable, Sendable {
     public var url: String?
     public var html: String?
+    public var markdown: String?
     public var format: String?
     public var quality: Int?
     public var device: String?
@@ -286,6 +287,7 @@ public struct ScreenshotOptions: Codable, Sendable {
     public init(
         url: String? = nil,
         html: String? = nil,
+        markdown: String? = nil,
         format: String? = nil,
         quality: Int? = nil,
         device: String? = nil,
@@ -342,6 +344,7 @@ public struct ScreenshotOptions: Codable, Sendable {
     ) {
         self.url = url
         self.html = html
+        self.markdown = markdown
         self.format = format
         self.quality = quality
         self.device = device
@@ -746,117 +749,6 @@ public struct AnyCodable: Codable, Sendable {
         }
     }
 }
-// SnapAPI Swift SDK Types
-
-import Foundation
-
-// MARK: - Extract API Types
-
-public enum ExtractType: String, Codable {
-    case markdown
-    case text
-    case html
-    case article
-    case structured
-    case links
-    case images
-    case metadata
-}
-
-public struct ExtractOptions: Encodable {
-    public var url: String
-    public var type: ExtractType?
-    public var selector: String?
-    public var waitFor: String?
-    public var timeout: Int?
-    public var darkMode: Bool?
-    public var blockAds: Bool?
-    public var blockCookieBanners: Bool?
-    public var maxLength: Int?
-    public var cleanOutput: Bool?
-    
-    public init(
-        url: String,
-        type: ExtractType? = .markdown,
-        selector: String? = nil,
-        waitFor: String? = nil,
-        timeout: Int? = nil,
-        darkMode: Bool? = nil,
-        blockAds: Bool? = nil,
-        blockCookieBanners: Bool? = nil,
-        maxLength: Int? = nil,
-        cleanOutput: Bool? = nil
-    ) {
-        self.url = url
-        self.type = type
-        self.selector = selector
-        self.waitFor = waitFor
-        self.timeout = timeout
-        self.darkMode = darkMode
-        self.blockAds = blockAds
-        self.blockCookieBanners = blockCookieBanners
-        self.maxLength = maxLength
-        self.cleanOutput = cleanOutput
-    }
-}
-
-public struct ExtractResult<T: Decodable>: Decodable {
-    public let success: Bool
-    public let type: ExtractType
-    public let url: String
-    public let data: T
-    public let responseTime: Int
-}
-
-public struct ExtractArticle: Decodable {
-    public let title: String
-    public let byline: String?
-    public let content: String
-    public let textContent: String?
-    public let excerpt: String?
-    public let siteName: String?
-    public let publishedTime: String?
-    public let length: Int?
-    public let readingTime: Int?
-}
-
-public struct ExtractStructured: Decodable {
-    public let url: String
-    public let title: String
-    public let author: String
-    public let publishedTime: String
-    public let description: String
-    public let image: String?
-    public let wordCount: Int
-    public let content: String
-}
-
-public struct ExtractLink: Decodable {
-    public let text: String
-    public let href: String
-}
-
-public struct ExtractImage: Decodable {
-    public let src: String
-    public let alt: String
-    public let title: String?
-    public let width: Int?
-    public let height: Int?
-}
-
-public struct ExtractPageMetadata: Decodable {
-    public let title: String
-    public let url: String
-    public let description: String
-    public let keywords: String?
-    public let author: String?
-    public let ogTitle: String?
-    public let ogDescription: String?
-    public let ogImage: String?
-    public let canonical: String?
-    public let favicon: String?
-}
-
 // MARK: - Extract API Types
 
 public enum ExtractType: String, Codable, Sendable {
@@ -879,9 +771,10 @@ public struct ExtractOptions: Encodable, Sendable {
     public var darkMode: Bool?
     public var blockAds: Bool?
     public var blockCookieBanners: Bool?
+    public var includeImages: Bool?
     public var maxLength: Int?
     public var cleanOutput: Bool?
-    
+
     public init(
         url: String,
         type: ExtractType? = .markdown,
@@ -891,6 +784,7 @@ public struct ExtractOptions: Encodable, Sendable {
         darkMode: Bool? = nil,
         blockAds: Bool? = nil,
         blockCookieBanners: Bool? = nil,
+        includeImages: Bool? = nil,
         maxLength: Int? = nil,
         cleanOutput: Bool? = nil
     ) {
@@ -902,6 +796,7 @@ public struct ExtractOptions: Encodable, Sendable {
         self.darkMode = darkMode
         self.blockAds = blockAds
         self.blockCookieBanners = blockCookieBanners
+        self.includeImages = includeImages
         self.maxLength = maxLength
         self.cleanOutput = cleanOutput
     }
@@ -978,4 +873,64 @@ public struct ExtractPageMetadata: Decodable, Sendable {
     public let ogImage: String?
     public let canonical: String?
     public let favicon: String?
+}
+
+// MARK: - Analyze API Types
+
+/// Options for AI-powered webpage analysis (BYOK).
+public struct AnalyzeOptions: Encodable, Sendable {
+    public var url: String
+    public var prompt: String
+    public var provider: String?
+    public var apiKey: String
+    public var model: String?
+    public var jsonSchema: [String: AnyCodable]?
+    public var timeout: Int?
+    public var waitFor: String?
+    public var blockAds: Bool?
+    public var blockCookieBanners: Bool?
+    public var includeScreenshot: Bool?
+    public var includeMetadata: Bool?
+    public var maxContentLength: Int?
+
+    public init(
+        url: String,
+        prompt: String,
+        provider: String? = "openai",
+        apiKey: String,
+        model: String? = nil,
+        jsonSchema: [String: AnyCodable]? = nil,
+        timeout: Int? = nil,
+        waitFor: String? = nil,
+        blockAds: Bool? = nil,
+        blockCookieBanners: Bool? = nil,
+        includeScreenshot: Bool? = nil,
+        includeMetadata: Bool? = nil,
+        maxContentLength: Int? = nil
+    ) {
+        self.url = url
+        self.prompt = prompt
+        self.provider = provider
+        self.apiKey = apiKey
+        self.model = model
+        self.jsonSchema = jsonSchema
+        self.timeout = timeout
+        self.waitFor = waitFor
+        self.blockAds = blockAds
+        self.blockCookieBanners = blockCookieBanners
+        self.includeScreenshot = includeScreenshot
+        self.includeMetadata = includeMetadata
+        self.maxContentLength = maxContentLength
+    }
+}
+
+/// Result of AI-powered webpage analysis.
+public struct AnalyzeResult: Decodable, Sendable {
+    public let success: Bool
+    public let url: String
+    public let metadata: [String: AnyCodable]?
+    public let analysis: AnyCodable
+    public let provider: String
+    public let model: String
+    public let responseTime: Int
 }

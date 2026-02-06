@@ -10,19 +10,19 @@ Add the following to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Sleywill/snapapi.git", from: "1.1.0")
+    .package(url: "https://github.com/Sleywill/snapapi.git", from: "1.2.0")
 ]
 ```
 
 Or add it through Xcode:
 1. File → Add Packages...
 2. Enter: `https://github.com/Sleywill/snapapi.git`
-3. Select version: `1.1.0`
+3. Select version: `1.2.0`
 
 ### CocoaPods
 
 ```ruby
-pod 'SnapAPI', '~> 1.1.0'
+pod 'SnapAPI', '~> 1.2.0'
 ```
 
 ## Quick Start
@@ -417,6 +417,101 @@ if status.status == "completed" {
 }
 ```
 
+### Screenshot from Markdown
+
+Render Markdown content as a screenshot:
+
+```swift
+let markdown = "# Hello World\n\nThis is **bold** and this is *italic*."
+let screenshot = try await client.screenshotFromMarkdown(markdown)
+try screenshot.write(to: URL(fileURLWithPath: "markdown.png"))
+
+// With additional options
+let screenshot = try await client.screenshotFromMarkdown(
+    "# Report\n\n| Name | Score |\n|------|-------|\n| Alice | 95 |",
+    options: ScreenshotOptions(width: 800, height: 600, darkMode: true)
+)
+```
+
+Or pass markdown directly to the screenshot method:
+
+```swift
+let screenshot = try await client.screenshot(
+    ScreenshotOptions(markdown: "# Hello World", format: "png", width: 1280)
+)
+```
+
+### Extract Content
+
+Extract content from any webpage in various formats:
+
+```swift
+// Extract as Markdown
+let markdown = try await client.extractMarkdown("https://example.com/blog-post")
+
+// Extract article content (strips navigation, ads, etc.)
+let article = try await client.extractArticle("https://example.com/news/story")
+
+// Extract plain text
+let text = try await client.extractText("https://example.com")
+
+// Extract all links
+let links = try await client.extractLinks("https://example.com")
+
+// Extract all images
+let images = try await client.extractImages("https://example.com")
+
+// Extract structured data for LLM/RAG
+let structured = try await client.extractStructured("https://example.com/product")
+
+// Extract page metadata
+let meta = try await client.extractMetadata("https://example.com")
+```
+
+Use the full `extract()` method for advanced options:
+
+```swift
+let result = try await client.extract(
+    ExtractOptions(
+        url: "https://example.com/article",
+        type: .markdown,
+        selector: ".article-body",
+        blockAds: true,
+        blockCookieBanners: true,
+        includeImages: true,
+        maxLength: 5000,
+        cleanOutput: true
+    )
+)
+```
+
+### Analyze with AI
+
+Analyze webpage content using AI providers (BYOK - Bring Your Own Key):
+
+```swift
+// Summarize a page with OpenAI
+let result = try await client.analyze(
+    AnalyzeOptions(
+        url: "https://example.com/article",
+        prompt: "Summarize the main points in 3 bullet points",
+        provider: "openai",
+        apiKey: "sk-..."
+    )
+)
+
+// Analyze with Anthropic Claude
+let result = try await client.analyze(
+    AnalyzeOptions(
+        url: "https://example.com/product",
+        prompt: "Extract the product name, price, and key features",
+        provider: "anthropic",
+        apiKey: "sk-ant-...",
+        model: "claude-sonnet-4-20250514"
+    )
+)
+```
+
 ### Get API Capabilities
 
 ```swift
@@ -588,9 +683,10 @@ class ScreenshotViewController: UIViewController {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `url` | String? | - | URL to capture (required if no html) |
-| `html` | String? | - | HTML content to render (required if no url) |
-| `format` | String? | `"png"` | `"png"`, `"jpeg"`, `"webp"`, `"pdf"` |
+| `url` | String? | - | URL to capture (required if no html/markdown) |
+| `html` | String? | - | HTML content to render (required if no url/markdown) |
+| `markdown` | String? | - | Markdown content to render (required if no url/html) |
+| `format` | String? | `"png"` | `"png"`, `"jpeg"`, `"webp"`, `"avif"`, `"pdf"` |
 | `quality` | Int? | `80` | Image quality 1-100 (JPEG/WebP) |
 | `device` | String? | - | Device preset name |
 | `width` | Int? | `1280` | Viewport width (100-3840) |

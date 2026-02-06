@@ -33,7 +33,7 @@ class SnapAPI(
     companion object {
         const val DEFAULT_BASE_URL = "https://api.snapapi.pics"
         const val DEFAULT_TIMEOUT = 60000
-        const val VERSION = "1.1.0"
+        const val VERSION = "1.2.0"
         private const val USER_AGENT = "snapapi-kotlin/$VERSION"
     }
 
@@ -54,8 +54,8 @@ class SnapAPI(
      * @return Raw image bytes
      */
     suspend fun screenshot(options: ScreenshotOptions): ByteArray {
-        require(options.url != null || options.html != null) {
-            "Either url or html is required"
+        require(options.url != null || options.html != null || options.markdown != null) {
+            "Either url, html, or markdown is required"
         }
 
         return doRequest("POST", "/v1/screenshot", options)
@@ -111,8 +111,8 @@ class SnapAPI(
      * @return Raw PDF bytes
      */
     suspend fun pdf(options: ScreenshotOptions): ByteArray {
-        require(options.url != null || options.html != null) {
-            "Either url or html is required"
+        require(options.url != null || options.html != null || options.markdown != null) {
+            "Either url, html, or markdown is required"
         }
 
         val opts = options.copy(format = "pdf", responseType = "binary")
@@ -273,6 +273,34 @@ class SnapAPI(
      */
     suspend fun extractMetadata(url: String): ExtractResult {
         return extract(ExtractOptions(url = url, type = ExtractType.metadata))
+    }
+
+    /**
+     * Analyze a webpage using AI (BYOK - Bring Your Own Key).
+     *
+     * @param options Analysis options including LLM provider and API key
+     * @return Analysis result
+     */
+    suspend fun analyze(options: AnalyzeOptions): AnalyzeResult {
+        require(options.url.isNotBlank()) { "URL is required" }
+        require(options.prompt.isNotBlank()) { "Prompt is required" }
+        require(options.apiKey.isNotBlank()) { "LLM API key is required" }
+
+        val response = doRequest("POST", "/v1/analyze", options)
+        return json.decodeFromString(response.decodeToString())
+    }
+
+    /**
+     * Capture a screenshot from Markdown content.
+     *
+     * @param markdown Markdown content to render
+     * @param options Additional screenshot options
+     * @return Raw image bytes
+     */
+    suspend fun screenshotFromMarkdown(markdown: String, options: ScreenshotOptions? = null): ByteArray {
+        val opts = options?.copy(markdown = markdown, url = null, html = null)
+            ?: ScreenshotOptions(markdown = markdown)
+        return screenshot(opts)
     }
 
     private suspend fun <T> doRequest(method: String, path: String, body: T?): ByteArray {
