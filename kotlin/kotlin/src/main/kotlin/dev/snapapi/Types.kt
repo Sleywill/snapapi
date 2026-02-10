@@ -139,6 +139,7 @@ data class ExtractMetadata(
 data class ScreenshotOptions(
     val url: String? = null,
     val html: String? = null,
+    val markdown: String? = null,
     val format: String? = null,
     val quality: Int? = null,
     val device: String? = null,
@@ -191,7 +192,70 @@ data class ScreenshotOptions(
     val cacheTtl: Int? = null,
     val responseType: String? = null,
     val includeMetadata: Boolean? = null,
-    val extractMetadata: ExtractMetadata? = null
+    val extractMetadata: ExtractMetadata? = null,
+    val failIfContentMissing: List<String>? = null,
+    val failIfContentContains: List<String>? = null
+)
+
+/**
+ * Scroll easing function for video capture.
+ */
+enum class ScrollEasing(val value: String) {
+    @SerialName("linear") LINEAR("linear"),
+    @SerialName("ease_in") EASE_IN("ease_in"),
+    @SerialName("ease_out") EASE_OUT("ease_out"),
+    @SerialName("ease_in_out") EASE_IN_OUT("ease_in_out"),
+    @SerialName("ease_in_out_quint") EASE_IN_OUT_QUINT("ease_in_out_quint")
+}
+
+/**
+ * Video capture options.
+ */
+@Serializable
+data class VideoOptions(
+    val url: String,
+    val format: String? = "mp4",
+    val quality: Int? = null,
+    val width: Int? = 1280,
+    val height: Int? = 720,
+    val device: String? = null,
+    val duration: Int? = 5000,
+    val fps: Int? = 24,
+    val delay: Int? = null,
+    val timeout: Int? = 60000,
+    val waitUntil: String? = null,
+    val waitForSelector: String? = null,
+    val darkMode: Boolean? = null,
+    val blockAds: Boolean? = null,
+    val blockCookieBanners: Boolean? = null,
+    val css: String? = null,
+    val javascript: String? = null,
+    val hideSelectors: List<String>? = null,
+    val userAgent: String? = null,
+    val cookies: List<Cookie>? = null,
+    val responseType: String? = null,
+    val scroll: Boolean? = null,
+    val scrollDelay: Int? = null,
+    val scrollDuration: Int? = null,
+    val scrollBy: Int? = null,
+    val scrollEasing: ScrollEasing? = null,
+    val scrollBack: Boolean? = null,
+    val scrollComplete: Boolean? = null
+)
+
+/**
+ * Video capture result.
+ */
+@Serializable
+data class VideoResult(
+    val success: Boolean,
+    val data: String? = null,
+    val format: String,
+    val width: Int,
+    val height: Int,
+    val fileSize: Int,
+    val duration: Int,
+    val took: Int
 )
 
 /**
@@ -331,19 +395,125 @@ data class UsageResult(
 )
 
 /**
- * API error response.
+ * API error response (flat format).
+ * The API returns: {"statusCode": 401, "error": "Unauthorized", "message": "Invalid API key.", "details": [...]}
  */
 @Serializable
 data class ErrorResponse(
-    val error: ErrorDetails
+    val statusCode: Int,
+    val error: String,
+    val message: String,
+    val details: List<kotlinx.serialization.json.JsonElement>? = null
 )
 
-/**
- * Error details.
- */
+// Extract API Types
+
+enum class ExtractType {
+    markdown, text, html, article, structured, links, images, metadata
+}
+
 @Serializable
-data class ErrorDetails(
-    val code: String,
-    val message: String,
-    val details: Map<String, kotlinx.serialization.json.JsonElement>? = null
+data class ExtractOptions(
+    val url: String,
+    val type: ExtractType? = ExtractType.markdown,
+    val selector: String? = null,
+    val waitFor: String? = null,
+    val timeout: Int? = null,
+    val darkMode: Boolean? = null,
+    val blockAds: Boolean? = null,
+    val blockCookieBanners: Boolean? = null,
+    val includeImages: Boolean? = null,
+    val maxLength: Int? = null,
+    val cleanOutput: Boolean? = null
+)
+
+@Serializable
+data class ExtractResult(
+    val success: Boolean,
+    val type: String,
+    val url: String,
+    val data: kotlinx.serialization.json.JsonElement,
+    val responseTime: Int
+)
+
+@Serializable
+data class ExtractArticle(
+    val title: String,
+    val byline: String? = null,
+    val content: String,
+    val textContent: String? = null,
+    val excerpt: String? = null,
+    val siteName: String? = null,
+    val publishedTime: String? = null,
+    val length: Int? = null,
+    val readingTime: Int? = null
+)
+
+@Serializable
+data class ExtractStructured(
+    val url: String,
+    val title: String,
+    val author: String,
+    val publishedTime: String,
+    val description: String,
+    val image: String? = null,
+    val wordCount: Int,
+    val content: String
+)
+
+@Serializable
+data class ExtractLink(
+    val text: String,
+    val href: String
+)
+
+@Serializable
+data class ExtractImage(
+    val src: String,
+    val alt: String,
+    val title: String? = null,
+    val width: Int? = null,
+    val height: Int? = null
+)
+
+@Serializable
+data class ExtractPageMetadata(
+    val title: String,
+    val url: String,
+    val description: String,
+    val keywords: String? = null,
+    val author: String? = null,
+    val ogTitle: String? = null,
+    val ogDescription: String? = null,
+    val ogImage: String? = null,
+    val canonical: String? = null,
+    val favicon: String? = null
+)
+
+@Serializable
+data class AnalyzeOptions(
+    val url: String,
+    val prompt: String,
+    val provider: String? = "openai",
+    val apiKey: String,
+    val model: String? = null,
+    val jsonSchema: kotlinx.serialization.json.JsonElement? = null,
+    val timeout: Int? = null,
+    val waitFor: String? = null,
+    val blockAds: Boolean? = null,
+    val blockCookieBanners: Boolean? = null,
+    val includeScreenshot: Boolean? = null,
+    val includeMetadata: Boolean? = null,
+    val maxContentLength: Int? = null
+)
+
+@Serializable
+data class AnalyzeResult(
+    val success: Boolean,
+    val url: String,
+    val metadata: kotlinx.serialization.json.JsonElement? = null,
+    val analysis: kotlinx.serialization.json.JsonElement,
+    val provider: String,
+    val model: String,
+    val responseTime: Int
 )

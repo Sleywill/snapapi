@@ -395,25 +395,16 @@ data class UsageResult(
 )
 
 /**
- * API error response.
+ * API error response (flat format).
+ * The API returns: {"statusCode": 401, "error": "Unauthorized", "message": "Invalid API key.", "details": [...]}
  */
 @Serializable
 data class ErrorResponse(
-    val error: ErrorDetails
-)
-
-/**
- * Error details.
- */
-@Serializable
-data class ErrorDetails(
-    val code: String,
+    val statusCode: Int,
+    val error: String,
     val message: String,
-    val details: Map<String, kotlinx.serialization.json.JsonElement>? = null
+    val details: List<kotlinx.serialization.json.JsonElement>? = null
 )
-package dev.snapapi
-
-import kotlinx.serialization.Serializable
 
 // Extract API Types
 

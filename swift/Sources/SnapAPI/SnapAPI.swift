@@ -344,12 +344,16 @@ public actor SnapAPI {
 
     private func handleError(data: Data, statusCode: Int) throws -> Never {
         do {
-            let errorResponse = try JSONDecoder().decode(ErrorResponse.self, from: data)
+            let errorResponse = try JSONDecoder().decode(FlatErrorResponse.self, from: data)
+            // Map the flat "error" string (e.g. "Unauthorized") to an error code
+            let code = errorResponse.error
+                .uppercased()
+                .replacingOccurrences(of: " ", with: "_")
             throw SnapAPIError(
-                code: errorResponse.error.code,
-                message: errorResponse.error.message,
+                code: code,
+                message: errorResponse.message,
                 statusCode: statusCode,
-                details: errorResponse.error.details
+                details: errorResponse.details
             )
         } catch let error as SnapAPIError {
             throw error
@@ -381,13 +385,13 @@ public struct SnapAPIError: Error, LocalizedError, Sendable {
     public let statusCode: Int
 
     /// Additional error details
-    public let details: [String: AnyCodable]?
+    public let details: [AnyCodable]?
 
     public init(
         code: String,
         message: String,
         statusCode: Int,
-        details: [String: AnyCodable]? = nil
+        details: [AnyCodable]? = nil
     ) {
         self.code = code
         self.message = message

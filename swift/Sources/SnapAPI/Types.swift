@@ -682,16 +682,13 @@ public struct UsageResult: Codable, Sendable {
 
 // MARK: - Error Response
 
-/// API error response.
-struct ErrorResponse: Codable {
-    let error: ErrorDetails
-}
-
-/// Error details.
-struct ErrorDetails: Codable {
-    let code: String
-    let message: String
-    let details: [String: AnyCodable]?
+/// API error response (flat format).
+/// The API returns: {"statusCode": 401, "error": "Unauthorized", "message": "Invalid API key.", "details": [...]}
+struct FlatErrorResponse: Codable {
+    let statusCode: Int?
+    let error: String       // e.g. "Unauthorized", "Validation Error"
+    let message: String     // e.g. "Invalid API key."
+    let details: [AnyCodable]?
 }
 
 // MARK: - AnyCodable

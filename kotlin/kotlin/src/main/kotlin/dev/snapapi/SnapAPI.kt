@@ -33,7 +33,7 @@ class SnapAPI(
     companion object {
         const val DEFAULT_BASE_URL = "https://api.snapapi.pics"
         const val DEFAULT_TIMEOUT = 60000
-        const val VERSION = "1.1.0"
+        const val VERSION = "1.2.0"
         private const val USER_AGENT = "snapapi-kotlin/$VERSION"
     }
 
@@ -54,11 +54,11 @@ class SnapAPI(
      * @return Raw image bytes
      */
     suspend fun screenshot(options: ScreenshotOptions): ByteArray {
-        require(options.url != null || options.html != null) {
-            "Either url or html is required"
+        require(options.url != null || options.html != null || options.markdown != null) {
+            "Either url, html, or markdown is required"
         }
 
-        return doRequest("POST", "/v1/screenshot", options)
+        return doRequest("POST", "/v1/screenshot", json.encodeToString(options))
     }
 
     /**
@@ -69,7 +69,7 @@ class SnapAPI(
      */
     suspend fun screenshotWithMetadata(options: ScreenshotOptions): ScreenshotResult {
         val opts = options.copy(responseType = "json")
-        val response = doRequest("POST", "/v1/screenshot", opts)
+        val response = doRequest("POST", "/v1/screenshot", json.encodeToString(opts))
         return json.decodeFromString(response.decodeToString())
     }
 
@@ -111,12 +111,12 @@ class SnapAPI(
      * @return Raw PDF bytes
      */
     suspend fun pdf(options: ScreenshotOptions): ByteArray {
-        require(options.url != null || options.html != null) {
-            "Either url or html is required"
+        require(options.url != null || options.html != null || options.markdown != null) {
+            "Either url, html, or markdown is required"
         }
 
         val opts = options.copy(format = "pdf", responseType = "binary")
-        return doRequest("POST", "/v1/screenshot", opts)
+        return doRequest("POST", "/v1/screenshot", json.encodeToString(opts))
     }
 
     /**
@@ -135,6 +135,28 @@ class SnapAPI(
     }
 
     /**
+     * Capture a video of a webpage with optional scroll animation.
+     *
+     * @param options Video options
+     * @return Raw video bytes
+     */
+    suspend fun video(options: VideoOptions): ByteArray {
+        return doRequest("POST", "/v1/video", json.encodeToString(options))
+    }
+
+    /**
+     * Capture a video and return structured result with metadata.
+     *
+     * @param options Video options
+     * @return Video result with metadata
+     */
+    suspend fun videoWithResult(options: VideoOptions): VideoResult {
+        val opts = options.copy(responseType = "json")
+        val response = doRequest("POST", "/v1/video", json.encodeToString(opts))
+        return json.decodeFromString(response.decodeToString())
+    }
+
+    /**
      * Capture screenshots of multiple URLs.
      *
      * @param options Batch options
@@ -143,7 +165,7 @@ class SnapAPI(
     suspend fun batch(options: BatchOptions): BatchResult {
         require(options.urls.isNotEmpty()) { "URLs are required" }
 
-        val response = doRequest("POST", "/v1/screenshot/batch", options)
+        val response = doRequest("POST", "/v1/screenshot/batch", json.encodeToString(options))
         return json.decodeFromString(response.decodeToString())
     }
 
@@ -188,10 +210,104 @@ class SnapAPI(
         return json.decodeFromString(response.decodeToString())
     }
 
+    // Extract API
+
+    /**
+     * Extract content from a webpage.
+     */
+    suspend fun extract(options: ExtractOptions): ExtractResult {
+        require(options.url.isNotBlank()) { "URL is required" }
+
+        val response = doRequest("POST", "/v1/extract", json.encodeToString(options))
+        return json.decodeFromString(response.decodeToString())
+    }
+
+    /**
+     * Extract markdown from a webpage.
+     */
+    suspend fun extractMarkdown(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.markdown))
+    }
+
+    /**
+     * Extract article content from a webpage.
+     */
+    suspend fun extractArticle(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.article))
+    }
+
+    /**
+     * Extract structured data for LLM/RAG workflows.
+     */
+    suspend fun extractStructured(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.structured))
+    }
+
+    /**
+     * Extract plain text from a webpage.
+     */
+    suspend fun extractText(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.text))
+    }
+
+    /**
+     * Extract all links from a webpage.
+     */
+    suspend fun extractLinks(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.links))
+    }
+
+    /**
+     * Extract all images from a webpage.
+     */
+    suspend fun extractImages(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.images))
+    }
+
+    /**
+     * Extract page metadata from a webpage.
+     */
+    suspend fun extractMetadata(url: String): ExtractResult {
+        return extract(ExtractOptions(url = url, type = ExtractType.metadata))
+    }
+
+    /**
+     * Analyze a webpage using AI (BYOK - Bring Your Own Key).
+     *
+     * @param options Analysis options including LLM provider and API key
+     * @return Analysis result
+     */
+    suspend fun analyze(options: AnalyzeOptions): AnalyzeResult {
+        require(options.url.isNotBlank()) { "URL is required" }
+        require(options.prompt.isNotBlank()) { "Prompt is required" }
+        require(options.apiKey.isNotBlank()) { "LLM API key is required" }
+
+        val response = doRequest("POST", "/v1/analyze", json.encodeToString(options))
+        return json.decodeFromString(response.decodeToString())
+    }
+
+    /**
+     * Capture a screenshot from Markdown content.
+     *
+     * @param markdown Markdown content to render
+     * @param options Additional screenshot options
+     * @return Raw image bytes
+     */
+    suspend fun screenshotFromMarkdown(markdown: String, options: ScreenshotOptions? = null): ByteArray {
+        val opts = options?.copy(markdown = markdown, url = null, html = null)
+            ?: ScreenshotOptions(markdown = markdown)
+        return screenshot(opts)
+    }
+
     /**
      * Perform an HTTP request to the API.
+     *
+     * @param method HTTP method (GET, POST, etc.)
+     * @param path API path (e.g. /v1/screenshot)
+     * @param jsonBody Pre-serialized JSON body string, or null for GET requests
+     * @return Raw response bytes
      */
-    private suspend fun <T> doRequest(method: String, path: String, body: T?): ByteArray {
+    private suspend fun doRequest(method: String, path: String, jsonBody: String?): ByteArray {
         return withContext(Dispatchers.IO) {
             val url = URL("$baseUrl$path")
             val connection = url.openConnection() as HttpURLConnection
@@ -204,9 +320,8 @@ class SnapAPI(
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.setRequestProperty("User-Agent", USER_AGENT)
 
-                if (body != null) {
+                if (jsonBody != null) {
                     connection.doOutput = true
-                    val jsonBody = json.encodeToString(body)
                     connection.outputStream.use { it.write(jsonBody.toByteArray()) }
                 }
 
@@ -227,15 +342,18 @@ class SnapAPI(
 
     /**
      * Parse and throw a SnapAPIException from an HTTP error.
+     *
+     * The API returns a flat error format:
+     * {"statusCode": 401, "error": "Unauthorized", "message": "Invalid API key.", "details": [...]}
      */
     private fun handleError(body: ByteArray, statusCode: Int): Nothing {
         try {
             val errorResponse: ErrorResponse = json.decodeFromString(body.decodeToString())
             throw SnapAPIException(
-                message = errorResponse.error.message,
-                code = errorResponse.error.code,
+                message = errorResponse.message,
+                code = errorResponse.error,
                 statusCode = statusCode,
-                details = errorResponse.error.details
+                details = errorResponse.details
             )
         } catch (e: Exception) {
             if (e is SnapAPIException) throw e
@@ -255,7 +373,7 @@ class SnapAPIException(
     message: String,
     val code: String,
     val statusCode: Int,
-    val details: Map<String, kotlinx.serialization.json.JsonElement>? = null
+    val details: List<kotlinx.serialization.json.JsonElement>? = null
 ) : Exception("[$code] $message (HTTP $statusCode)") {
 
     /**
