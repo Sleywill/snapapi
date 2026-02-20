@@ -16,7 +16,7 @@ import Foundation
 /// ```
 public actor SnapAPI {
     /// SDK version
-    public static let version = "1.2.0"
+    public static let version = "1.3.0"
 
     /// Default base URL
     public static let defaultBaseURL = "https://api.snapapi.pics"
@@ -48,6 +48,16 @@ public actor SnapAPI {
         config.timeoutIntervalForRequest = timeout
         config.timeoutIntervalForResource = timeout
         self.session = URLSession(configuration: config)
+    }
+
+    // MARK: - Ping
+
+    /// Check API health.
+    ///
+    /// - Returns: Ping result with status and timestamp
+    public func ping() async throws -> PingResult {
+        let data: Data = try await doRequest("GET", path: "/v1/ping", body: nil as Empty?)
+        return try JSONDecoder().decode(PingResult.self, from: data)
     }
 
     // MARK: - Screenshot Methods
@@ -93,6 +103,20 @@ public actor SnapAPI {
         return try await screenshot(opts)
     }
 
+    /// Capture a screenshot from Markdown content.
+    ///
+    /// - Parameters:
+    ///   - markdown: Markdown content to render
+    ///   - options: Additional screenshot options
+    /// - Returns: Raw image data
+    public func screenshotFromMarkdown(_ markdown: String, options: ScreenshotOptions? = nil) async throws -> Data {
+        var opts = options ?? ScreenshotOptions()
+        opts.markdown = markdown
+        opts.url = nil
+        opts.html = nil
+        return try await screenshot(opts)
+    }
+
     /// Capture a screenshot using a device preset.
     ///
     /// - Parameters:
@@ -111,11 +135,72 @@ public actor SnapAPI {
         return try await screenshot(opts)
     }
 
+    // MARK: - Async Screenshot
+
+    /// Submit an async screenshot job.
+    ///
+    /// - Parameter options: Screenshot options
+    /// - Returns: Async job result with jobId and statusUrl
+    public func screenshotAsync(_ options: ScreenshotOptions) async throws -> AsyncJobResult {
+        guard options.url != nil || options.html != nil || options.markdown != nil else {
+            throw SnapAPIError(
+                code: "INVALID_PARAMS",
+                message: "Either url, html, or markdown is required",
+                statusCode: 400
+            )
+        }
+
+        var opts = options
+        opts.async = true
+        opts.responseType = "json"
+
+        let data = try await doRequest("POST", path: "/v1/screenshot", body: opts)
+        return try JSONDecoder().decode(AsyncJobResult.self, from: data)
+    }
+
+    /// Poll async screenshot job status.
+    ///
+    /// - Parameter jobId: The async job ID
+    /// - Returns: Async status result
+    public func getAsyncStatus(_ jobId: String) async throws -> AsyncStatusResult {
+        let data: Data = try await doRequest("GET", path: "/v1/screenshot/async/\(jobId)", body: nil as Empty?)
+        return try JSONDecoder().decode(AsyncStatusResult.self, from: data)
+    }
+
+    /// Submit an async screenshot and poll until completion.
+    ///
+    /// - Parameters:
+    ///   - options: Screenshot options
+    ///   - pollInterval: Seconds between polls (default: 1)
+    ///   - maxAttempts: Maximum poll attempts (default: 60)
+    /// - Returns: Completed async status result
+    public func screenshotAsyncAndWait(
+        _ options: ScreenshotOptions,
+        pollInterval: TimeInterval = 1,
+        maxAttempts: Int = 60
+    ) async throws -> AsyncStatusResult {
+        let job = try await screenshotAsync(options)
+
+        for _ in 0..<maxAttempts {
+            try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+            let status = try await getAsyncStatus(job.jobId)
+            if status.status == "completed" || status.status == "failed" {
+                return status
+            }
+        }
+
+        throw SnapAPIError(
+            code: "TIMEOUT",
+            message: "Async screenshot timed out after \(maxAttempts) attempts",
+            statusCode: 408
+        )
+    }
+
     // MARK: - PDF Methods
 
-    /// Generate a PDF from a URL or HTML content.
+    /// Generate a PDF using the dedicated /v1/pdf endpoint.
     ///
-    /// - Parameter options: Screenshot options (format will be set to pdf)
+    /// - Parameter options: Screenshot options with PDF-specific settings
     /// - Returns: Raw PDF data
     public func pdf(_ options: ScreenshotOptions) async throws -> Data {
         guard options.url != nil || options.html != nil || options.markdown != nil else {
@@ -126,10 +211,7 @@ public actor SnapAPI {
             )
         }
 
-        var opts = options
-        opts.format = "pdf"
-        opts.responseType = "binary"
-        return try await doRequest("POST", path: "/v1/screenshot", body: opts)
+        return try await doRequest("POST", path: "/v1/pdf", body: options)
     }
 
     /// Generate a PDF from HTML content.
@@ -141,7 +223,6 @@ public actor SnapAPI {
     public func pdfFromHtml(_ html: String, pdfOptions: PdfOptions? = nil) async throws -> Data {
         return try await pdf(ScreenshotOptions(
             html: html,
-            format: "pdf",
             pdfOptions: pdfOptions
         ))
     }
@@ -195,37 +276,37 @@ public actor SnapAPI {
         return try JSONDecoder().decode(BatchStatus.self, from: data)
     }
 
-    // MARK: - Info Methods
-
-    /// Get available device presets.
+    /// Submit a batch and poll until completion.
     ///
-    /// - Returns: Devices result with presets grouped by category
-    public func getDevices() async throws -> DevicesResult {
-        let data: Data = try await doRequest("GET", path: "/v1/devices", body: nil as Empty?)
-        return try JSONDecoder().decode(DevicesResult.self, from: data)
+    /// - Parameters:
+    ///   - options: Batch options
+    ///   - pollInterval: Seconds between polls (default: 2)
+    ///   - maxAttempts: Maximum poll attempts (default: 60)
+    /// - Returns: Completed batch status
+    public func batchAndWait(
+        _ options: BatchOptions,
+        pollInterval: TimeInterval = 2,
+        maxAttempts: Int = 60
+    ) async throws -> BatchStatus {
+        let result = try await batch(options)
+
+        for _ in 0..<maxAttempts {
+            try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+            let status = try await getBatchStatus(result.jobId)
+            if status.status == "completed" || status.status == "failed" {
+                return status
+            }
+        }
+
+        throw SnapAPIError(
+            code: "TIMEOUT",
+            message: "Batch job timed out after \(maxAttempts) attempts",
+            statusCode: 408
+        )
     }
-
-    /// Get API capabilities and features.
-    ///
-    /// - Returns: Capabilities result
-    public func getCapabilities() async throws -> CapabilitiesResult {
-        let data: Data = try await doRequest("GET", path: "/v1/capabilities", body: nil as Empty?)
-        return try JSONDecoder().decode(CapabilitiesResult.self, from: data)
-    }
-
-    /// Get API usage statistics.
-    ///
-    /// - Returns: Usage result with limits and remaining quota
-    public func getUsage() async throws -> UsageResult {
-        let data: Data = try await doRequest("GET", path: "/v1/usage", body: nil as Empty?)
-        return try JSONDecoder().decode(UsageResult.self, from: data)
-    }
-
-    // MARK: - Private Methods
-
 
     // MARK: - Extract API
-    
+
     /// Extract content from a webpage.
     public func extract(_ options: ExtractOptions) async throws -> Data {
         guard !options.url.isEmpty else {
@@ -233,37 +314,37 @@ public actor SnapAPI {
         }
         return try await doRequest("POST", path: "/v1/extract", body: options)
     }
-    
+
     /// Extract markdown from a webpage.
     public func extractMarkdown(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .markdown))
     }
-    
+
     /// Extract article content from a webpage.
     public func extractArticle(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .article))
     }
-    
+
     /// Extract structured data for LLM/RAG workflows.
     public func extractStructured(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .structured))
     }
-    
+
     /// Extract plain text from a webpage.
     public func extractText(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .text))
     }
-    
+
     /// Extract all links from a webpage.
     public func extractLinks(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .links))
     }
-    
+
     /// Extract all images from a webpage.
     public func extractImages(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .images))
     }
-    
+
     /// Extract page metadata from a webpage.
     public func extractMetadata(_ url: String) async throws -> Data {
         return try await extract(ExtractOptions(url: url, type: .metadata))
@@ -272,9 +353,6 @@ public actor SnapAPI {
     // MARK: - Analyze API
 
     /// Analyze a webpage using AI (BYOK - Bring Your Own Key).
-    ///
-    /// - Parameter options: Analysis options including LLM provider and API key
-    /// - Returns: Raw JSON response data
     public func analyze(_ options: AnalyzeOptions) async throws -> Data {
         guard !options.url.isEmpty else {
             throw SnapAPIError(code: "INVALID_PARAMS", message: "URL is required", statusCode: 400)
@@ -288,21 +366,27 @@ public actor SnapAPI {
         return try await doRequest("POST", path: "/v1/analyze", body: options)
     }
 
-    // MARK: - Markdown Screenshot
+    // MARK: - Info Methods
 
-    /// Capture a screenshot from Markdown content.
-    ///
-    /// - Parameters:
-    ///   - markdown: Markdown content to render
-    ///   - options: Additional screenshot options
-    /// - Returns: Raw image data
-    public func screenshotFromMarkdown(_ markdown: String, options: ScreenshotOptions? = nil) async throws -> Data {
-        var opts = options ?? ScreenshotOptions()
-        opts.markdown = markdown
-        opts.url = nil
-        opts.html = nil
-        return try await screenshot(opts)
+    /// Get available device presets.
+    public func getDevices() async throws -> DevicesResult {
+        let data: Data = try await doRequest("GET", path: "/v1/devices", body: nil as Empty?)
+        return try JSONDecoder().decode(DevicesResult.self, from: data)
     }
+
+    /// Get API capabilities and features.
+    public func getCapabilities() async throws -> CapabilitiesResult {
+        let data: Data = try await doRequest("GET", path: "/v1/capabilities", body: nil as Empty?)
+        return try JSONDecoder().decode(CapabilitiesResult.self, from: data)
+    }
+
+    /// Get API usage statistics.
+    public func getUsage() async throws -> UsageResult {
+        let data: Data = try await doRequest("GET", path: "/v1/usage", body: nil as Empty?)
+        return try JSONDecoder().decode(UsageResult.self, from: data)
+    }
+
+    // MARK: - Private Methods
 
     private func doRequest<T: Encodable>(_ method: String, path: String, body: T?) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
@@ -345,7 +429,6 @@ public actor SnapAPI {
     private func handleError(data: Data, statusCode: Int) throws -> Never {
         do {
             let errorResponse = try JSONDecoder().decode(FlatErrorResponse.self, from: data)
-            // Map the flat "error" string (e.g. "Unauthorized") to an error code
             let code = errorResponse.error
                 .uppercased()
                 .replacingOccurrences(of: " ", with: "_")

@@ -281,6 +281,8 @@ public struct ScreenshotOptions: Codable, Sendable {
     public var responseType: String?
     public var includeMetadata: Bool?
     public var extractMetadata: ExtractMetadata?
+    public var async: Bool?
+    public var webhookUrl: String?
     public var failIfContentMissing: [String]?
     public var failIfContentContains: [String]?
 
@@ -339,6 +341,8 @@ public struct ScreenshotOptions: Codable, Sendable {
         responseType: String? = nil,
         includeMetadata: Bool? = nil,
         extractMetadata: ExtractMetadata? = nil,
+        async: Bool? = nil,
+        webhookUrl: String? = nil,
         failIfContentMissing: [String]? = nil,
         failIfContentContains: [String]? = nil
     ) {
@@ -396,9 +400,67 @@ public struct ScreenshotOptions: Codable, Sendable {
         self.responseType = responseType
         self.includeMetadata = includeMetadata
         self.extractMetadata = extractMetadata
+        self.async = async
+        self.webhookUrl = webhookUrl
         self.failIfContentMissing = failIfContentMissing
         self.failIfContentContains = failIfContentContains
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case url, html, markdown, format, quality, device, width, height
+        case deviceScaleFactor, isMobile, hasTouch, isLandscape
+        case fullPage, fullPageScrollDelay, fullPageMaxHeight
+        case selector, selectorScrollIntoView
+        case clipX, clipY, clipWidth, clipHeight
+        case delay, timeout, waitUntil, waitForSelector, waitForSelectorTimeout
+        case darkMode, reducedMotion, css, javascript, hideSelectors
+        case clickSelector, clickDelay
+        case blockAds, blockTrackers, blockCookieBanners, blockChatWidgets, blockResources
+        case userAgent, extraHeaders, cookies, httpAuth, proxy, geolocation, timezone, locale
+        case pdfOptions, thumbnail
+        case failOnHttpError, cache, cacheTtl
+        case responseType, includeMetadata, extractMetadata
+        case async = "async"
+        case webhookUrl
+        case failIfContentMissing, failIfContentContains
+    }
+}
+
+// MARK: - Ping Result
+
+/// Result of the ping endpoint.
+public struct PingResult: Codable, Sendable {
+    public let status: String
+    public let timestamp: Int64
+}
+
+// MARK: - Async Job Result
+
+/// Result of submitting an async screenshot job.
+public struct AsyncJobResult: Codable, Sendable {
+    public let success: Bool
+    public let async: Bool
+    public let jobId: String
+    public let status: String
+    public let statusUrl: String
+    public let message: String
+}
+
+// MARK: - Async Status Result
+
+/// Status of an async screenshot job.
+public struct AsyncStatusResult: Codable, Sendable {
+    public let success: Bool
+    public let jobId: String
+    public let status: String
+    public let createdAt: String?
+    public let completedAt: String?
+    public let format: String?
+    public let width: Int?
+    public let height: Int?
+    public let fileSize: Int?
+    public let data: String?       // base64 data if completed with responseType=json
+    public let error: String?      // error message if failed
 }
 
 // MARK: - Scroll Easing

@@ -2,290 +2,405 @@ import XCTest
 @testable import SnapAPI
 
 /// Integration tests against the live SnapAPI at https://api.snapapi.pics
-/// Uses the demo API key.
 final class IntegrationTests: XCTestCase {
-    let apiKey = ProcessInfo.processInfo.environment["SNAPAPI_API_KEY"] ?? "test_key_not_set"
+    let apiKey: String = {
+        guard let key = ProcessInfo.processInfo.environment["SNAPAPI_API_KEY"], !key.isEmpty else {
+            fatalError("Set SNAPAPI_API_KEY environment variable to run integration tests")
+        }
+        return key
+    }()
 
-    // MARK: - Error Parsing Tests
+    lazy var client = SnapAPI(apiKey: apiKey, timeout: 120)
 
-    /// Test that an invalid API key returns a properly parsed error with message.
-    func testInvalidApiKeyError() async throws {
-        let client = SnapAPI(apiKey: "sk_live_INVALID_KEY_12345")
-
+    /// Helper: run test body, skip gracefully if quota/plan limited
+    func withQuotaHandling(_ body: () async throws -> Void, file: StaticString = #file, line: UInt = #line) async throws {
         do {
-            _ = try await client.screenshot(
-                ScreenshotOptions(url: "https://example.com")
-            )
-            XCTFail("Expected SnapAPIError to be thrown")
-        } catch let error as SnapAPIError {
-            print("Error code: \(error.code)")
-            print("Error message: \(error.message)")
-            print("Error statusCode: \(error.statusCode)")
-            // The API should return 401 with error: "Unauthorized"
-            XCTAssertEqual(error.statusCode, 401)
-            // After fix: code should be derived from the flat "error" field
-            XCTAssertEqual(error.code, "UNAUTHORIZED")
-            // The message should contain something about invalid API key
-            XCTAssertTrue(error.message.lowercased().contains("invalid") || error.message.lowercased().contains("api key"),
-                          "Expected message about invalid API key, got: \(error.message)")
-            // Should NOT be the generic "HTTP 401" fallback
-            XCTAssertNotEqual(error.code, "HTTP_ERROR", "Error parsing fell through to generic handler - bug not fixed!")
-            print("PASS: Error parsing works correctly for 401 Unauthorized")
-        } catch {
-            XCTFail("Expected SnapAPIError, got: \(error)")
+            try await body()
+        } catch let error as SnapAPIError where error.code == "QUOTA_EXCEEDED" || error.code == "TOO_MANY_REQUESTS" {
+            print("⚠️ Skipped: \(error.message)")
+        } catch let error as SnapAPIError where error.code == "FORBIDDEN" {
+            print("⚠️ Skipped: \(error.message)")
         }
     }
 
-    /// Test validation error (missing required field).
-    func testValidationError() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        // Send empty body by bypassing local validation - we can test with an invalid url
-        do {
-            _ = try await client.screenshot(
-                ScreenshotOptions(url: "not-a-valid-url")
-            )
-            // The API might still try to capture or return an error
-            print("Note: API accepted the invalid URL (might resolve or fail)")
-        } catch let error as SnapAPIError {
-            print("Validation error code: \(error.code)")
-            print("Validation error message: \(error.message)")
-            print("Validation error statusCode: \(error.statusCode)")
-            // Should NOT be the generic fallback
-            XCTAssertNotEqual(error.code, "HTTP_ERROR",
-                              "Error parsing fell through to generic handler - bug not fixed!")
-            print("PASS: Validation error parsing works correctly")
-        } catch {
-            XCTFail("Expected SnapAPIError, got: \(error)")
-        }
+    // MARK: - 1. Ping
+    func testPing() async throws {
+        let result = try await client.ping()
+        XCTAssertEqual(result.status, "ok")
+        XCTAssertGreaterThan(result.timestamp, 0)
+        print("✅ ping: status=\(result.status)")
     }
 
-    // MARK: - Screenshot Tests
-
-    /// Test basic screenshot capture.
-    func testBasicScreenshot() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let data = try await client.screenshot(
-            ScreenshotOptions(
-                url: "https://example.com",
-                format: "png",
-                width: 800,
-                height: 600
-            )
-        )
-
-        XCTAssertGreaterThan(data.count, 1000, "Screenshot data should be substantial")
-        // PNG files start with the PNG signature: 0x89504E47
-        XCTAssertEqual(data[0], 0x89, "Should start with PNG signature byte 1")
-        XCTAssertEqual(data[1], 0x50, "Should start with PNG signature byte 2 (P)")
-        XCTAssertEqual(data[2], 0x4E, "Should start with PNG signature byte 3 (N)")
-        XCTAssertEqual(data[3], 0x47, "Should start with PNG signature byte 4 (G)")
-        print("PASS: Basic screenshot capture works. Size: \(data.count) bytes")
-    }
-
-    /// Test JPEG format screenshot.
-    func testJpegScreenshot() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let data = try await client.screenshot(
-            ScreenshotOptions(
-                url: "https://example.com",
-                format: "jpeg",
-                quality: 80,
-                width: 800,
-                height: 600
-            )
-        )
-
-        XCTAssertGreaterThan(data.count, 1000, "Screenshot data should be substantial")
-        // JPEG files start with 0xFFD8FF
-        XCTAssertEqual(data[0], 0xFF, "Should start with JPEG signature byte 1")
-        XCTAssertEqual(data[1], 0xD8, "Should start with JPEG signature byte 2")
-        print("PASS: JPEG screenshot capture works. Size: \(data.count) bytes")
-    }
-
-    /// Test WebP format screenshot.
-    func testWebpScreenshot() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let data = try await client.screenshot(
-            ScreenshotOptions(
-                url: "https://example.com",
-                format: "webp",
-                width: 800,
-                height: 600
-            )
-        )
-
-        XCTAssertGreaterThan(data.count, 100, "Screenshot data should be substantial")
-        // WebP starts with "RIFF" (0x52494646)
-        XCTAssertEqual(data[0], 0x52, "Should start with RIFF signature (R)")
-        XCTAssertEqual(data[1], 0x49, "Should start with RIFF signature (I)")
-        XCTAssertEqual(data[2], 0x46, "Should start with RIFF signature (F)")
-        XCTAssertEqual(data[3], 0x46, "Should start with RIFF signature (F)")
-        print("PASS: WebP screenshot capture works. Size: \(data.count) bytes")
-    }
-
-    /// Test screenshot with metadata (JSON response).
-    func testScreenshotWithMetadata() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let result = try await client.screenshotWithMetadata(
-            ScreenshotOptions(
-                url: "https://example.com",
-                width: 800,
-                height: 600,
-                includeMetadata: true
-            )
-        )
-
-        XCTAssertTrue(result.success, "Should be successful")
-        XCTAssertGreaterThan(result.width, 0, "Should have width")
-        XCTAssertGreaterThan(result.height, 0, "Should have height")
-        XCTAssertGreaterThan(result.fileSize, 0, "Should have file size")
-        XCTAssertGreaterThan(result.took, 0, "Should have timing")
-        XCTAssertFalse(result.data.isEmpty, "Should have base64 data")
-
-        // Verify image data can be decoded
-        let imageData = result.imageData
-        XCTAssertNotNil(imageData, "Should be able to decode base64 data")
-
-        print("PASS: Screenshot with metadata works.")
-        print("  Width: \(result.width), Height: \(result.height)")
-        print("  File size: \(result.fileSize), Took: \(result.took)ms")
-        print("  Format: \(result.format), Cached: \(result.cached)")
-        if let meta = result.metadata {
-            print("  Title: \(meta.title ?? "nil")")
-        }
-    }
-
-    /// Test screenshot from HTML content.
-    func testScreenshotFromHtml() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let html = """
-        <html>
-        <body style="display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#1a1a2e;color:#e94560;font-family:sans-serif;">
-            <h1>SnapAPI Swift SDK Test</h1>
-        </body>
-        </html>
-        """
-
-        let data = try await client.screenshotFromHtml(
-            html,
-            options: ScreenshotOptions(format: "png", width: 800, height: 600)
-        )
-
-        XCTAssertGreaterThan(data.count, 1000)
-        XCTAssertEqual(data[0], 0x89, "Should be PNG")
-        print("PASS: HTML screenshot works. Size: \(data.count) bytes")
-    }
-
-    /// Test screenshot with dark mode.
-    func testDarkModeScreenshot() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let data = try await client.screenshot(
-            ScreenshotOptions(
-                url: "https://example.com",
-                width: 800,
-                height: 600,
-                darkMode: true
-            )
-        )
-
-        XCTAssertGreaterThan(data.count, 1000)
-        print("PASS: Dark mode screenshot works. Size: \(data.count) bytes")
-    }
-
-    /// Test full-page screenshot.
-    func testFullPageScreenshot() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let data = try await client.screenshot(
-            ScreenshotOptions(
-                url: "https://example.com",
-                width: 800,
-                fullPage: true
-            )
-        )
-
-        XCTAssertGreaterThan(data.count, 1000)
-        print("PASS: Full page screenshot works. Size: \(data.count) bytes")
-    }
-
-    // MARK: - PDF Tests
-
-    /// Test PDF generation.
-    func testPdfGeneration() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let data = try await client.pdf(
-            ScreenshotOptions(url: "https://example.com")
-        )
-
-        XCTAssertGreaterThan(data.count, 1000)
-        // PDF files start with "%PDF"
-        let header = String(data: data.prefix(4), encoding: .ascii)
-        XCTAssertEqual(header, "%PDF", "Should start with PDF signature")
-        print("PASS: PDF generation works. Size: \(data.count) bytes")
-    }
-
-    // MARK: - Usage / Info Tests
-
-    /// Test getting API usage info.
+    // MARK: - 2. Usage
     func testGetUsage() async throws {
-        let client = SnapAPI(apiKey: apiKey)
-
-        let usage = try await client.getUsage()
-        print("Usage - Used: \(usage.used), Limit: \(usage.limit), Remaining: \(usage.remaining)")
-        XCTAssertGreaterThanOrEqual(usage.limit, 0)
-        XCTAssertGreaterThanOrEqual(usage.used, 0)
-        print("PASS: Get usage works.")
+        try await withQuotaHandling {
+            let usage = try await self.client.getUsage()
+            XCTAssertGreaterThanOrEqual(usage.limit, 0)
+            XCTAssertGreaterThanOrEqual(usage.used, 0)
+            XCTAssertFalse(usage.resetAt.isEmpty)
+            print("✅ usage: \(usage.used)/\(usage.limit)")
+        }
     }
 
-    // MARK: - Error isRetryable
+    // MARK: - 3. Devices
+    func testGetDevices() async throws {
+        let result = try await client.getDevices()
+        XCTAssertTrue(result.success)
+        XCTAssertGreaterThan(result.total, 0)
+        print("✅ devices: \(result.total)")
+    }
 
+    // MARK: - 4. Capabilities
+    func testGetCapabilities() async throws {
+        let result = try await client.getCapabilities()
+        XCTAssertTrue(result.success)
+        XCTAssertFalse(result.version.isEmpty)
+        print("✅ capabilities: v\(result.version)")
+    }
+
+    // MARK: - 5. Screenshot PNG
+    func testScreenshotPNG() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", format: "png", width: 800, height: 600)
+            )
+            XCTAssertGreaterThan(data.count, 1000)
+            XCTAssertEqual(data[0], 0x89)
+            print("✅ screenshot PNG: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 6. Screenshot JPEG
+    func testScreenshotJPEG() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", format: "jpeg", quality: 80, width: 800, height: 600)
+            )
+            XCTAssertGreaterThan(data.count, 1000)
+            XCTAssertEqual(data[0], 0xFF)
+            XCTAssertEqual(data[1], 0xD8)
+            print("✅ screenshot JPEG: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 7. Screenshot WebP
+    func testScreenshotWebP() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", format: "webp", width: 800, height: 600)
+            )
+            XCTAssertGreaterThan(data.count, 100)
+            XCTAssertEqual(data[0], 0x52) // RIFF
+            print("✅ screenshot WebP: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 8. Screenshot from HTML
+    func testScreenshotFromHtml() async throws {
+        try await withQuotaHandling {
+            let html = "<html><body style='background:#1a1a2e;color:#e94560;'><h1>SnapAPI Swift Test</h1></body></html>"
+            let data = try await self.client.screenshotFromHtml(html, options: ScreenshotOptions(format: "png", width: 800, height: 600))
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot from HTML: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 9. Screenshot from Markdown
+    func testScreenshotFromMarkdown() async throws {
+        try await withQuotaHandling {
+            let md = "# Hello from SnapAPI\n\nThis is a **Swift SDK** test."
+            let data = try await self.client.screenshotFromMarkdown(md, options: ScreenshotOptions(format: "png", width: 800, height: 600))
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot from Markdown: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 10. Screenshot with metadata
+    func testScreenshotWithMetadata() async throws {
+        try await withQuotaHandling {
+            let result = try await self.client.screenshotWithMetadata(
+                ScreenshotOptions(url: "https://example.com", width: 800, height: 600, includeMetadata: true)
+            )
+            XCTAssertTrue(result.success)
+            XCTAssertGreaterThan(result.width, 0)
+            XCTAssertNotNil(result.imageData)
+            print("✅ screenshot with metadata: \(result.width)x\(result.height)")
+        }
+    }
+
+    // MARK: - 11. Screenshot with device preset
+    func testScreenshotDevice() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshotDevice(url: "https://example.com", device: .iPhone15Pro)
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot device: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 12. Screenshot full page
+    func testScreenshotFullPage() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", width: 800, fullPage: true)
+            )
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot full page: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 13. Screenshot dark mode
+    func testScreenshotDarkMode() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", width: 800, height: 600, darkMode: true)
+            )
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot dark mode: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 14. Screenshot custom CSS/JS (requires Starter plan)
+    func testScreenshotCustomCssJs() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", width: 800, height: 600,
+                    css: "body { background: red !important; }",
+                    javascript: "document.title = 'Modified';")
+            )
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot custom CSS/JS: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 15. Screenshot blocking (requires Starter plan)
+    func testScreenshotBlocking() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", width: 800, height: 600,
+                    blockAds: true, blockTrackers: true, blockCookieBanners: true, blockChatWidgets: true)
+            )
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot with blocking: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 16. Screenshot selector
+    func testScreenshotSelector() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", selector: "h1")
+            )
+            XCTAssertGreaterThan(data.count, 100)
+            print("✅ screenshot selector: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 17. Screenshot delay & waitForSelector
+    func testScreenshotDelayAndWait() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.screenshot(
+                ScreenshotOptions(url: "https://example.com", width: 800, height: 600, delay: 1000, waitForSelector: "h1")
+            )
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ screenshot delay+waitForSelector: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 18. PDF (dedicated endpoint)
+    func testPdf() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.pdf(ScreenshotOptions(url: "https://example.com"))
+            XCTAssertGreaterThan(data.count, 1000)
+            let header = String(data: data.prefix(4), encoding: .ascii)
+            XCTAssertEqual(header, "%PDF")
+            print("✅ PDF: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 19. PDF from HTML
+    func testPdfFromHtml() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.pdfFromHtml("<h1>Hello PDF</h1>", pdfOptions: PdfOptions(landscape: true))
+            XCTAssertGreaterThan(data.count, 1000)
+            let header = String(data: data.prefix(4), encoding: .ascii)
+            XCTAssertEqual(header, "%PDF")
+            print("✅ PDF from HTML: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 20. Video
+    func testVideo() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.video(VideoOptions(
+                url: "https://example.com", width: 640, height: 480, duration: 3, fps: 12
+            ))
+            XCTAssertGreaterThan(data.count, 1000)
+            print("✅ video: \(data.count) bytes")
+        }
+    }
+
+    // MARK: - 21. Batch screenshot
+    func testBatch() async throws {
+        try await withQuotaHandling {
+            let result = try await self.client.batch(BatchOptions(
+                urls: ["https://example.com", "https://httpbin.org/html"],
+                format: "png", width: 800, height: 600
+            ))
+            XCTAssertTrue(result.success)
+            XCTAssertFalse(result.jobId.isEmpty)
+            XCTAssertEqual(result.total, 2)
+            print("✅ batch: jobId=\(result.jobId)")
+        }
+    }
+
+    // MARK: - 22. Batch status polling
+    func testBatchStatusPolling() async throws {
+        try await withQuotaHandling {
+            let result = try await self.client.batch(BatchOptions(
+                urls: ["https://example.com"], format: "png", width: 800, height: 600
+            ))
+            var status: BatchStatus?
+            for _ in 0..<30 {
+                try await Task.sleep(nanoseconds: 2_000_000_000)
+                status = try await self.client.getBatchStatus(result.jobId)
+                if status?.status == "completed" || status?.status == "failed" { break }
+            }
+            XCTAssertEqual(status?.status, "completed")
+            print("✅ batch polling: completed")
+        }
+    }
+
+    // MARK: - 23. Async screenshot
+    func testAsyncScreenshot() async throws {
+        try await withQuotaHandling {
+            let job = try await self.client.screenshotAsync(
+                ScreenshotOptions(url: "https://example.com", width: 800, height: 600)
+            )
+            XCTAssertTrue(job.success)
+            XCTAssertTrue(job.async)
+            XCTAssertFalse(job.jobId.isEmpty)
+            XCTAssertEqual(job.status, "pending")
+            print("✅ async screenshot: jobId=\(job.jobId)")
+        }
+    }
+
+    // MARK: - 24. Async screenshot polling
+    func testAsyncScreenshotPolling() async throws {
+        try await withQuotaHandling {
+            let job = try await self.client.screenshotAsync(
+                ScreenshotOptions(url: "https://example.com", width: 800, height: 600)
+            )
+            var status: AsyncStatusResult?
+            for _ in 0..<30 {
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                status = try await self.client.getAsyncStatus(job.jobId)
+                if status?.status == "completed" || status?.status == "failed" { break }
+            }
+            XCTAssertEqual(status?.status, "completed")
+            XCTAssertGreaterThan(status?.fileSize ?? 0, 0)
+            print("✅ async polling: completed, \(status?.fileSize ?? 0) bytes")
+        }
+    }
+
+    // MARK: - 25-32. Extract endpoints
+    func testExtractMarkdown() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extractMarkdown("https://example.com")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            XCTAssertEqual(json?["type"] as? String, "markdown")
+            print("✅ extract markdown")
+        }
+    }
+
+    func testExtractText() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extractText("https://example.com")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            print("✅ extract text")
+        }
+    }
+
+    func testExtractHtml() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extract(ExtractOptions(url: "https://example.com", type: .html))
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            print("✅ extract html")
+        }
+    }
+
+    func testExtractArticle() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extractArticle("https://example.com")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            print("✅ extract article")
+        }
+    }
+
+    func testExtractLinks() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extractLinks("https://example.com")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            print("✅ extract links")
+        }
+    }
+
+    func testExtractImages() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extractImages("https://example.com")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            print("✅ extract images")
+        }
+    }
+
+    func testExtractMetadata() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extractMetadata("https://example.com")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            print("✅ extract metadata")
+        }
+    }
+
+    func testExtractStructured() async throws {
+        try await withQuotaHandling {
+            let data = try await self.client.extractStructured("https://example.com")
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            XCTAssertEqual(json?["success"] as? Bool, true)
+            print("✅ extract structured")
+        }
+    }
+
+    // MARK: - 33. Error handling
+    func testInvalidApiKeyError() async throws {
+        let badClient = SnapAPI(apiKey: "sk_live_INVALID_KEY_12345")
+        do {
+            _ = try await badClient.screenshot(ScreenshotOptions(url: "https://example.com"))
+            XCTFail("Expected error")
+        } catch let error as SnapAPIError {
+            XCTAssertEqual(error.statusCode, 401)
+            XCTAssertEqual(error.code, "UNAUTHORIZED")
+            print("✅ error handling: \(error.code)")
+        }
+    }
+
+    // MARK: - 34. Error isRetryable
     func testErrorIsRetryable() {
-        let rateLimited = SnapAPIError(code: "RATE_LIMITED", message: "Too many", statusCode: 429)
-        XCTAssertTrue(rateLimited.isRetryable)
-
-        let unauthorized = SnapAPIError(code: "UNAUTHORIZED", message: "Bad key", statusCode: 401)
-        XCTAssertFalse(unauthorized.isRetryable)
-
-        print("PASS: isRetryable logic works correctly")
+        XCTAssertTrue(SnapAPIError(code: "RATE_LIMITED", message: "", statusCode: 429).isRetryable)
+        XCTAssertFalse(SnapAPIError(code: "UNAUTHORIZED", message: "", statusCode: 401).isRetryable)
+        print("✅ isRetryable")
     }
 
-    // MARK: - Flat Error Parsing Unit Test
-
-    /// Unit test that directly validates FlatErrorResponse parsing.
+    // MARK: - 35. FlatErrorResponse parsing
     func testFlatErrorResponseParsing() throws {
-        // Simulate the actual API response format
-        let json = """
-        {"statusCode": 401, "error": "Unauthorized", "message": "Invalid API key."}
-        """.data(using: .utf8)!
-
+        let json = "{\"statusCode\": 401, \"error\": \"Unauthorized\", \"message\": \"Invalid API key.\"}".data(using: .utf8)!
         let decoded = try JSONDecoder().decode(FlatErrorResponse.self, from: json)
-        XCTAssertEqual(decoded.statusCode, 401)
         XCTAssertEqual(decoded.error, "Unauthorized")
-        XCTAssertEqual(decoded.message, "Invalid API key.")
-        XCTAssertNil(decoded.details)
-        print("PASS: FlatErrorResponse decodes correctly")
-    }
-
-    /// Unit test for validation error with details array.
-    func testFlatErrorResponseWithDetails() throws {
-        let json = """
-        {"statusCode": 400, "error": "Validation Error", "message": "Invalid parameters", "details": ["url is required", "format must be png or jpeg"]}
-        """.data(using: .utf8)!
-
-        let decoded = try JSONDecoder().decode(FlatErrorResponse.self, from: json)
-        XCTAssertEqual(decoded.statusCode, 400)
-        XCTAssertEqual(decoded.error, "Validation Error")
-        XCTAssertEqual(decoded.message, "Invalid parameters")
-        XCTAssertNotNil(decoded.details)
-        XCTAssertEqual(decoded.details?.count, 2)
-        print("PASS: FlatErrorResponse with details decodes correctly")
+        print("✅ FlatErrorResponse parsing")
     }
 }

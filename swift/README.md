@@ -10,19 +10,19 @@ Add the following to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Sleywill/snapapi.git", from: "1.2.0")
+    .package(url: "https://github.com/Sleywill/snapapi.git", from: "1.3.0")
 ]
 ```
 
 Or add it through Xcode:
 1. File → Add Packages...
 2. Enter: `https://github.com/Sleywill/snapapi.git`
-3. Select version: `1.2.0`
+3. Select version: `1.3.0`
 
 ### CocoaPods
 
 ```ruby
-pod 'SnapAPI', '~> 1.2.0'
+pod 'SnapAPI', '~> 1.3.0'
 ```
 
 ## Quick Start
@@ -767,6 +767,65 @@ do {
 | `TIMEOUT` | 504 | Page took too long to load |
 | `CAPTURE_FAILED` | 500 | Screenshot capture failed |
 | `HTTP_ERROR` | varies | Page returned HTTP error (with failOnHttpError) |
+
+### Ping (Health Check)
+
+```swift
+let result = try await client.ping()
+print(result.status)    // "ok"
+print(result.timestamp) // Unix timestamp
+```
+
+### Async Screenshots
+
+Submit a screenshot job and poll for results:
+
+```swift
+// Submit async job
+let job = try await client.screenshotAsync(
+    ScreenshotOptions(url: "https://example.com", width: 1280, height: 800)
+)
+print(job.jobId)     // "abc123"
+print(job.statusUrl) // "/v1/screenshot/async/abc123"
+
+// Poll for status
+let status = try await client.getAsyncStatus(job.jobId)
+if status.status == "completed" {
+    print("Done! \(status.fileSize ?? 0) bytes")
+}
+
+// Or use the convenience method that polls automatically
+let completed = try await client.screenshotAsyncAndWait(
+    ScreenshotOptions(url: "https://example.com"),
+    pollInterval: 1,
+    maxAttempts: 60
+)
+```
+
+### Dedicated PDF Endpoint
+
+```swift
+// Uses /v1/pdf endpoint
+let pdfData = try await client.pdf(
+    ScreenshotOptions(
+        url: "https://example.com",
+        pdfOptions: PdfOptions(landscape: true, printBackground: true)
+    )
+)
+try pdfData.write(to: URL(fileURLWithPath: "output.pdf"))
+```
+
+### Batch with Polling
+
+```swift
+// Submit and wait for completion
+let status = try await client.batchAndWait(
+    BatchOptions(urls: ["https://example.com", "https://github.com"]),
+    pollInterval: 2,
+    maxAttempts: 60
+)
+print("Completed: \(status.completed)/\(status.total)")
+```
 
 ## Requirements
 
