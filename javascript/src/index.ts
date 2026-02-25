@@ -954,7 +954,7 @@ export class SnapAPI {
         headers: {
           'X-Api-Key': this.apiKey,
           'Content-Type': 'application/json',
-          'User-Agent': 'snapapi-js/1.2.0',
+          'User-Agent': 'snapapi-js/1.3.1',
           ...init?.headers,
         },
         signal: controller.signal,
@@ -975,7 +975,7 @@ export class SnapAPI {
     let body: { error?: { code?: string; message?: string; details?: Record<string, unknown> } } = {};
 
     try {
-      body = await response.json();
+      body = await response.json() as typeof body;
     } catch {
       // Ignore JSON parse errors
     }

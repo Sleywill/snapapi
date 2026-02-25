@@ -16,7 +16,7 @@ import Foundation
 /// ```
 public actor SnapAPI {
     /// SDK version
-    public static let version = "1.3.0"
+    public static let version = "1.3.1"
 
     /// Default base URL
     public static let defaultBaseURL = "https://api.snapapi.pics"

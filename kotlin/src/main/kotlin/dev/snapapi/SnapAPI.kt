@@ -33,7 +33,7 @@ class SnapAPI(
     companion object {
         const val DEFAULT_BASE_URL = "https://api.snapapi.pics"
         const val DEFAULT_TIMEOUT = 60000
-        const val VERSION = "1.2.0"
+        const val VERSION = "1.3.1"
         private const val USER_AGENT = "snapapi-kotlin/$VERSION"
     }
 

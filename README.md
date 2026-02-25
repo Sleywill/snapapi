@@ -32,12 +32,12 @@ This monorepo contains all official SnapAPI client libraries for various program
 
 | SDK | Version | Install | Status |
 |-----|---------|---------|--------|
-| [JavaScript/TypeScript](./javascript) | 1.0.0 | `npm install @snapapi/sdk` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Python](./python) | 1.0.0 | `pip install snapapi` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [PHP](./php) | 1.0.0 | `composer require snapapi/sdk` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Go](./go) | 1.0.0 | `go get github.com/Sleywill/snapapi/go` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Kotlin/Android](./kotlin) | 1.0.0 | Gradle/Maven | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Swift/iOS](./swift) | 1.3.0 | Swift Package Manager | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
+| [JavaScript/TypeScript](./javascript) | 1.3.1 | `npm install @snapapi/sdk` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
+| [Python](./python) | 1.3.1 | `pip install snapapi` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
+| [PHP](./php) | 1.3.1 | `composer require snapapi/sdk` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
+| [Go](./go) | 1.3.1 | `go get github.com/Sleywill/snapapi-go` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
+| [Kotlin/Android](./kotlin) | 1.3.1 | Gradle/Maven | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
+| [Swift/iOS](./swift) | 1.3.1 | Swift Package Manager | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
 
 ---
 
