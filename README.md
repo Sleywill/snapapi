@@ -1,322 +1,77 @@
 <p align="center">
-  <img src="https://snapapi.pics/assets/logo.png" alt="SnapAPI Logo" width="120" height="120">
+  <img src="https://snapapi.pics/logo-translucent-128.png" alt="SnapAPI Logo" width="120" height="120">
 </p>
 
-<h1 align="center">SnapAPI Official SDKs</h1>
+<h1 align="center">SnapAPI — Screenshot, PDF & Web Extraction API</h1>
 
 <p align="center">
-  <strong>Lightning-fast screenshot API for developers</strong><br>
-  Capture any website in milliseconds with our powerful, easy-to-use API
+  <strong>One API call. Screenshot any URL, generate PDFs, capture videos, extract content, or run AI analysis.</strong>
 </p>
 
 <p align="center">
   <a href="https://snapapi.pics"><img src="https://img.shields.io/badge/Website-snapapi.pics-6366f1?style=for-the-badge" alt="Website"></a>
   <a href="https://snapapi.pics/docs.html"><img src="https://img.shields.io/badge/Docs-API%20Reference-ec4899?style=for-the-badge" alt="Documentation"></a>
-  <a href="https://github.com/Sleywill/snapapi/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" alt="License"></a>
+  <a href="https://snapapi.pics/dashboard.html"><img src="https://img.shields.io/badge/Dashboard-Get%20Key-10b981?style=for-the-badge" alt="Dashboard"></a>
+  <a href="https://github.com/Sleywill/snapapi/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" alt="License"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@snapapi/sdk"><img src="https://img.shields.io/npm/v/@snapapi/sdk?label=npm&color=cb3837" alt="npm"></a>
+  <a href="https://pypi.org/project/snapapi/"><img src="https://img.shields.io/pypi/v/snapapi?label=pypi&color=3776ab" alt="PyPI"></a>
+  <a href="https://pkg.go.dev/github.com/Sleywill/snapapi-go"><img src="https://img.shields.io/badge/go-pkg-00add8" alt="Go"></a>
 </p>
 
 <p align="center">
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-sdks">SDKs</a> •
-  <a href="#-features">Features</a> •
   <a href="#-api-reference">API Reference</a> •
-  <a href="#-examples">Examples</a> •
-  <a href="#-support">Support</a>
+  <a href="#-pricing">Pricing</a> •
+  <a href="docs/">Full Docs</a>
 </p>
-
----
-
-## Overview
-
-This monorepo contains all official SnapAPI client libraries for various programming languages. Each SDK provides a simple, idiomatic interface to interact with the SnapAPI screenshot service.
-
-| SDK | Version | Install | Status |
-|-----|---------|---------|--------|
-| [JavaScript/TypeScript](./javascript) | 1.3.1 | `npm install @snapapi/sdk` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Python](./python) | 1.3.1 | `pip install snapapi` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [PHP](./php) | 1.3.1 | `composer require snapapi/sdk` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Go](./go) | 1.3.1 | `go get github.com/Sleywill/snapapi-go` | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Kotlin/Android](./kotlin) | 1.3.1 | Gradle/Maven | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
-| [Swift/iOS](./swift) | 1.3.1 | Swift Package Manager | ![Stable](https://img.shields.io/badge/status-stable-10b981) |
 
 ---
 
 ## Quick Start
 
-### 1. Get Your API Key
-
-Sign up at [snapapi.pics](https://snapapi.pics/register.html) to get your free API key. The free tier includes **100 screenshots per month**.
-
-### 2. Install Your Preferred SDK
-
-<details>
-<summary><strong>JavaScript / TypeScript</strong></summary>
-
 ```bash
-npm install @snapapi/sdk
-# or
-yarn add @snapapi/sdk
-# or
-pnpm add @snapapi/sdk
+curl -X POST "https://api.snapapi.pics/v1/screenshot" \
+  -H "X-Api-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "format": "png"}' \
+  --output screenshot.png
 ```
 
-```typescript
-import { SnapAPI } from '@snapapi/sdk';
-
-const client = new SnapAPI('sk_live_your_api_key');
-
-const screenshot = await client.screenshot({
-  url: 'https://example.com',
-  format: 'png',
-  width: 1920,
-  height: 1080
-});
-
-// Save to file
-await fs.writeFile('screenshot.png', screenshot);
-```
-</details>
-
-<details>
-<summary><strong>Python</strong></summary>
-
-```bash
-pip install snapapi
-```
-
-```python
-from snapapi import SnapAPI
-
-client = SnapAPI(api_key='sk_live_your_api_key')
-
-screenshot = client.screenshot(
-    url='https://example.com',
-    format='png',
-    width=1920,
-    height=1080
-)
-
-# Save to file
-with open('screenshot.png', 'wb') as f:
-    f.write(screenshot)
-```
-</details>
-
-<details>
-<summary><strong>PHP</strong></summary>
-
-```bash
-composer require snapapi/sdk
-```
-
-```php
-<?php
-use SnapAPI\Client;
-
-$client = new Client('sk_live_your_api_key');
-
-$screenshot = $client->screenshot([
-    'url' => 'https://example.com',
-    'format' => 'png',
-    'width' => 1920,
-    'height' => 1080
-]);
-
-// Save to file
-file_put_contents('screenshot.png', $screenshot);
-```
-</details>
-
-<details>
-<summary><strong>Go</strong></summary>
-
-```bash
-go get github.com/Sleywill/snapapi/go
-```
-
-```go
-package main
-
-import (
-    "os"
-    snapapi "github.com/Sleywill/snapapi/go"
-)
-
-func main() {
-    client := snapapi.NewClient("sk_live_your_api_key")
-
-    data, err := client.Screenshot(snapapi.ScreenshotOptions{
-        URL:    "https://example.com",
-        Format: "png",
-        Width:  1920,
-        Height: 1080,
-    })
-    if err != nil {
-        panic(err)
-    }
-
-    os.WriteFile("screenshot.png", data, 0644)
-}
-```
-</details>
-
-<details>
-<summary><strong>Kotlin / Android</strong></summary>
-
-```kotlin
-// build.gradle.kts
-dependencies {
-    implementation("dev.snapapi:sdk:1.0.0")
-}
-```
-
-```kotlin
-import dev.snapapi.SnapAPI
-import dev.snapapi.ScreenshotOptions
-
-val client = SnapAPI("sk_live_your_api_key")
-
-val screenshot = client.screenshot(
-    ScreenshotOptions(
-        url = "https://example.com",
-        format = "png",
-        width = 1920,
-        height = 1080
-    )
-)
-
-// Save to file
-File("screenshot.png").writeBytes(screenshot)
-```
-</details>
-
-<details>
-<summary><strong>Swift / iOS</strong></summary>
-
-```swift
-// Package.swift
-dependencies: [
-    .package(url: "https://github.com/Sleywill/snapapi", from: "1.0.0")
-]
-```
-
-```swift
-import SnapAPI
-
-let client = SnapAPI(apiKey: "sk_live_your_api_key")
-
-let screenshot = try await client.screenshot(
-    url: "https://example.com",
-    format: .png,
-    width: 1920,
-    height: 1080
-)
-
-// Save to file
-try screenshot.write(to: URL(fileURLWithPath: "screenshot.png"))
-```
-</details>
+**Free tier: 200 calls/month. No credit card required.** → [Get your API key](https://snapapi.pics/register.html)
 
 ---
 
-## Features
+## What Is SnapAPI?
 
-### Core Features
+SnapAPI is a headless-browser API that turns any URL into:
 
-| Feature | Free | Starter | Pro | Enterprise |
-|---------|------|---------|-----|------------|
-| Screenshots/month | 100 | 5,000 | 50,000 | Unlimited |
-| PNG/JPEG/WebP | ✅ | ✅ | ✅ | ✅ |
-| Full Page Capture | ✅ | ✅ | ✅ | ✅ |
-| Mobile Viewports | ✅ | ✅ | ✅ | ✅ |
-| PDF Export | ❌ | ✅ | ✅ | ✅ |
-| Ad Blocking | ❌ | ✅ | ✅ | ✅ |
-| Dark Mode | ❌ | ✅ | ✅ | ✅ |
-| Custom CSS | ❌ | ✅ | ✅ | ✅ |
-| Custom JavaScript | ❌ | ❌ | ✅ | ✅ |
-| Webhooks | ❌ | ❌ | ✅ | ✅ |
-| Response Caching | ❌ | ❌ | ✅ | ✅ |
-| Priority Support | ❌ | ❌ | ✅ | ✅ |
-| Dedicated Infrastructure | ❌ | ❌ | ❌ | ✅ |
-| SLA | ❌ | ❌ | ❌ | ✅ |
+| What | Endpoint | Description |
+|------|----------|-------------|
+| 📸 **Screenshot** | `POST /v1/screenshot` | PNG, JPEG, WebP, AVIF — full page, element, or clip |
+| 📄 **PDF** | `POST /v1/pdf` | Server-side PDF from any URL or HTML |
+| 🎥 **Video** | `POST /v1/video` | Scroll-capture MP4/WebM/GIF of any page |
+| 🔍 **Extract** | `POST /v1/extract` | Markdown, article text, links, images, metadata |
+| 🤖 **Analyze** | `POST /v1/analyze` | AI analysis (BYOK: OpenAI or Anthropic) |
+| 📦 **Batch** | `POST /v1/screenshot/batch` | Capture hundreds of URLs async |
 
-### Screenshot Options
+---
 
-```typescript
-interface ScreenshotOptions {
-  url: string;              // Required: URL to capture
-  format?: 'png' | 'jpeg' | 'webp' | 'pdf';  // Default: 'png'
-  width?: number;           // Viewport width (default: 1280)
-  height?: number;          // Viewport height (default: 800)
-  fullPage?: boolean;       // Capture full scrollable page
-  darkMode?: boolean;       // Force dark mode (Starter+)
-  blockAds?: boolean;       // Block ads and popups (Starter+)
-  delay?: number;           // Wait ms before capture (max: 10000)
-  selector?: string;        // CSS selector to capture specific element
-  customCss?: string;       // Inject custom CSS (Starter+)
-  customJs?: string;        // Inject custom JavaScript (Pro+)
-  quality?: number;         // JPEG/WebP quality 1-100 (default: 80)
-  scale?: number;           // Device scale factor (default: 1)
-  timeout?: number;         // Page load timeout in ms (default: 30000)
-  failIfContentMissing?: string[];  // Fail if text not found on page
-  failIfContentContains?: string[]; // Fail if text found on page
-}
-```
+## SDKs
 
-### Video Options (New!)
+| Language | Install | Version |
+|----------|---------|---------|
+| **JavaScript / TypeScript** | `npm install @snapapi/sdk` | [![npm](https://img.shields.io/npm/v/@snapapi/sdk?color=cb3837)](https://www.npmjs.com/package/@snapapi/sdk) |
+| **Python** | `pip install snapapi` | [![PyPI](https://img.shields.io/pypi/v/snapapi?color=3776ab)](https://pypi.org/project/snapapi/) |
+| **PHP** | `composer require snapapi/sdk` | 1.3.1 |
+| **Go** | `go get github.com/Sleywill/snapapi-go` | 1.3.1 |
+| **Kotlin / Android** | Gradle: `dev.snapapi:sdk:1.3.1` | 1.3.1 |
+| **Swift / iOS** | Swift Package Manager | 1.3.1 |
 
-Capture scroll videos of webpages with smooth animations:
-
-```typescript
-interface VideoOptions {
-  url: string;                    // Required: URL to capture
-  format?: 'mp4' | 'webm' | 'gif'; // Video format (default: 'mp4')
-  width?: number;                 // Viewport width (default: 1280)
-  height?: number;                // Viewport height (default: 720)
-  duration?: number;              // Video duration in ms (default: 5000)
-  fps?: number;                   // Frames per second (default: 24)
-  scroll?: boolean;               // Enable scroll animation
-  scrollDelay?: number;           // Delay between scroll steps in ms (0-5000)
-  scrollDuration?: number;        // Duration of each scroll animation (100-5000)
-  scrollBy?: number;              // Pixels to scroll per step (100-2000)
-  scrollEasing?: 'linear' | 'ease_in' | 'ease_out' | 'ease_in_out' | 'ease_in_out_quint';
-  scrollBack?: boolean;           // Scroll back to top at end
-  scrollComplete?: boolean;       // Ensure entire page is scrolled
-  darkMode?: boolean;             // Force dark mode
-  blockAds?: boolean;             // Block ads
-  blockCookieBanners?: boolean;   // Hide cookie consent banners
-}
-
-// Example: Capture a smooth scroll video
-const video = await client.video({
-  url: 'https://example.com',
-  format: 'mp4',
-  scroll: true,
-  scrollDuration: 1500,
-  scrollEasing: 'ease_in_out',
-  scrollBack: true
-});
-
-await fs.writeFile('scroll-video.mp4', video);
-```
-
-### Content Validation (New!)
-
-Fail screenshot capture based on page content:
-
-```typescript
-// Fail if login page is shown (content you don't want)
-const screenshot = await client.screenshot({
-  url: 'https://example.com/dashboard',
-  failIfContentContains: ['Please log in', 'Session expired']
-});
-
-// Fail if expected content is missing
-const screenshot = await client.screenshot({
-  url: 'https://example.com/product',
-  failIfContentMissing: ['Add to Cart', 'In Stock']
-});
-```
+See [docs/sdks.md](docs/sdks.md) for installation details and code examples for every SDK.
 
 ---
 
@@ -328,110 +83,415 @@ https://api.snapapi.pics
 ```
 
 ### Authentication
-All requests require an API key in the `X-Api-Key` header:
-```
-X-Api-Key: sk_live_your_api_key
-```
 
-### Endpoints
+Include your API key in every request:
 
-#### Take Screenshot
 ```http
-POST /v1/screenshot
-Content-Type: application/json
-X-Api-Key: sk_live_your_api_key
-
-{
-  "url": "https://example.com",
-  "format": "png",
-  "width": 1920,
-  "height": 1080
-}
+X-Api-Key: YOUR_API_KEY
 ```
 
-**Response:**
-- `200 OK` - Returns binary image data
-- `400 Bad Request` - Invalid parameters
-- `401 Unauthorized` - Invalid API key
-- `402 Payment Required` - Quota exceeded
-- `429 Too Many Requests` - Rate limit exceeded
-- `500 Internal Server Error` - Screenshot failed
-
-### Rate Limits
-
-| Plan | Requests/second |
-|------|-----------------|
-| Free | 1 |
-| Starter | 5 |
-| Pro | 20 |
-| Enterprise | Custom |
+Or as a query parameter: `?access_key=YOUR_API_KEY`
 
 ---
 
-## Examples
+### Screenshot API `POST /v1/screenshot`
 
-### Capture Full Page
-```typescript
-const screenshot = await client.screenshot({
-  url: 'https://example.com',
-  fullPage: true
-});
+Capture any URL, HTML string, or Markdown as an image.
+
+**Minimal request:**
+```json
+{
+  "url": "https://example.com",
+  "format": "png"
+}
 ```
 
-### Mobile Screenshot
-```typescript
-const screenshot = await client.screenshot({
-  url: 'https://example.com',
-  width: 375,
-  height: 812,
-  scale: 2  // Retina display
-});
+**All parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `url` | string | — | URL to capture *(required unless `html` or `markdown` provided)* |
+| `html` | string | — | Raw HTML to render instead of a URL |
+| `markdown` | string | — | Markdown to render instead of a URL |
+| `format` | string | `png` | Output format: `png`, `jpeg`, `webp`, `avif`, `pdf` |
+| `quality` | integer | `80` | Image quality 1–100 (JPEG/WebP only) |
+| `device` | string | — | Device preset (see [device presets](docs/screenshot.md#device-presets)) |
+| `width` | integer | `1280` | Viewport width in pixels (100–3840) |
+| `height` | integer | `800` | Viewport height in pixels (100–2160) |
+| `deviceScaleFactor` | number | `1` | Device pixel ratio (1–3) |
+| `isMobile` | boolean | `false` | Emulate mobile device |
+| `hasTouch` | boolean | `false` | Enable touch events |
+| `isLandscape` | boolean | `false` | Landscape orientation |
+| `fullPage` | boolean | `false` | Capture full scrollable page |
+| `fullPageScrollDelay` | integer | — | Delay between scroll steps (ms) |
+| `fullPageMaxHeight` | integer | — | Max height for full-page capture (px) |
+| `selector` | string | — | CSS selector — capture only this element |
+| `selectorScrollIntoView` | boolean | `false` | Scroll element into view before capture |
+| `clipX` | integer | — | Clip region X position |
+| `clipY` | integer | — | Clip region Y position |
+| `clipWidth` | integer | — | Clip region width |
+| `clipHeight` | integer | — | Clip region height |
+| `delay` | integer | `0` | Wait before capture in ms (0–30000) |
+| `timeout` | integer | `30000` | Max page-load wait in ms (1000–60000) |
+| `waitUntil` | string | `load` | `load`, `domcontentloaded`, or `networkidle` |
+| `waitForSelector` | string | — | Wait for CSS selector before capture |
+| `waitForSelectorTimeout` | integer | — | Timeout for selector wait (ms) |
+| `darkMode` | boolean | `false` | Force dark color scheme |
+| `reducedMotion` | boolean | `false` | Prefer reduced motion |
+| `css` | string | — | Custom CSS to inject |
+| `javascript` | string | — | JavaScript to execute before capture |
+| `hideSelectors` | array | — | CSS selectors to hide |
+| `clickSelector` | string | — | CSS selector to click before capture |
+| `clickDelay` | integer | — | Delay after click (ms) |
+| `blockAds` | boolean | `false` | Block ads and popups |
+| `blockTrackers` | boolean | `false` | Block tracking scripts |
+| `blockCookieBanners` | boolean | `false` | Hide cookie consent banners |
+| `blockChatWidgets` | boolean | `false` | Hide Intercom, Drift, Zendesk widgets |
+| `blockResources` | array | — | Resource types to block: `stylesheet`, `image`, `font`, `script`, etc. |
+| `userAgent` | string | — | Custom User-Agent string |
+| `extraHeaders` | object | — | Additional HTTP request headers |
+| `cookies` | array | — | Cookies to set before navigation |
+| `httpAuth` | object | — | HTTP Basic Auth `{username, password}` |
+| `proxy` | object | — | Proxy config `{server, username, password}` |
+| `geolocation` | object | — | `{latitude, longitude, accuracy}` |
+| `timezone` | string | — | Timezone (e.g., `America/New_York`) |
+| `locale` | string | — | Locale (e.g., `en-US`) |
+| `pdfOptions` | object | — | PDF settings (when `format: "pdf"`) |
+| `thumbnail` | object | — | Generate a thumbnail alongside the screenshot |
+| `failOnHttpError` | boolean | `false` | Fail on 4xx/5xx HTTP responses |
+| `cache` | boolean | `false` | Enable response caching |
+| `cacheTtl` | integer | — | Cache TTL in seconds (60–2592000) |
+| `responseType` | string | `binary` | `binary`, `base64`, or `json` |
+| `includeMetadata` | boolean | `false` | Include page metadata in JSON response |
+| `extractMetadata` | object | — | `{fonts, colors, links, httpStatusCode}` |
+| `failIfContentMissing` | array | — | Fail if these strings are NOT found on the page |
+| `failIfContentContains` | array | — | Fail if these strings ARE found on the page |
+
+**Full example:**
+```bash
+curl -X POST "https://api.snapapi.pics/v1/screenshot" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "format": "webp",
+    "fullPage": true,
+    "blockAds": true,
+    "blockCookieBanners": true,
+    "darkMode": true,
+    "quality": 90,
+    "responseType": "json",
+    "includeMetadata": true
+  }'
 ```
 
-### Dark Mode with Ad Blocking
-```typescript
-const screenshot = await client.screenshot({
-  url: 'https://example.com',
-  darkMode: true,
-  blockAds: true
-});
+→ Full parameter docs: [docs/screenshot.md](docs/screenshot.md)
+
+---
+
+### PDF API `POST /v1/pdf`
+
+Generate a PDF from any URL or HTML content.
+
+```bash
+curl -X POST "https://api.snapapi.pics/v1/pdf" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "pdfOptions": {
+      "pageSize": "a4",
+      "landscape": false,
+      "marginTop": "20mm",
+      "marginBottom": "20mm",
+      "printBackground": true
+    }
+  }' \
+  --output document.pdf
 ```
 
-### Capture Specific Element
-```typescript
-const screenshot = await client.screenshot({
-  url: 'https://example.com',
-  selector: '#main-content'
-});
+PDF options: `pageSize` (`a4`, `a3`, `a5`, `letter`, `legal`, `tabloid`, `custom`), `landscape`, `marginTop/Right/Bottom/Left`, `printBackground`, `headerTemplate`, `footerTemplate`, `displayHeaderFooter`, `scale`, `pageRanges`, `preferCSSPageSize`.
+
+→ Full docs: [docs/screenshot.md#pdf](docs/screenshot.md#pdf-generation)
+
+---
+
+### Video API `POST /v1/video`
+
+Record scroll videos of any webpage.
+
+```bash
+curl -X POST "https://api.snapapi.pics/v1/video" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "format": "mp4",
+    "scroll": true,
+    "scrollDuration": 1500,
+    "scrollEasing": "ease_in_out",
+    "scrollBack": true
+  }' \
+  --output video.mp4
 ```
 
-### Inject Custom CSS
-```typescript
-const screenshot = await client.screenshot({
-  url: 'https://example.com',
-  customCss: `
-    .cookie-banner { display: none !important; }
-    body { font-family: 'Inter', sans-serif; }
-  `
-});
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `url` | string | — | URL to capture *(required)* |
+| `format` | string | `mp4` | `mp4`, `webm`, or `gif` |
+| `width` | integer | `1280` | Viewport width |
+| `height` | integer | `720` | Viewport height |
+| `duration` | integer | `5000` | Video duration in ms (1000–30000) |
+| `fps` | integer | `24` | Frames per second (1–30) |
+| `scroll` | boolean | `false` | Enable scroll animation |
+| `scrollDelay` | integer | — | Delay between scroll steps in ms (0–5000) |
+| `scrollDuration` | integer | — | Duration per scroll animation in ms (100–5000) |
+| `scrollBy` | integer | — | Pixels to scroll per step (100–2000) |
+| `scrollEasing` | string | — | `linear`, `ease_in`, `ease_out`, `ease_in_out`, `ease_in_out_quint` |
+| `scrollBack` | boolean | `false` | Scroll back to top at the end |
+| `scrollComplete` | boolean | `false` | Ensure entire page is scrolled |
+
+---
+
+### Extract API `POST /v1/extract`
+
+Extract clean content from any webpage — perfect for LLM / RAG workflows.
+
+```bash
+curl -X POST "https://api.snapapi.pics/v1/extract" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/blog/post", "type": "article"}'
 ```
 
-### Generate PDF
-```typescript
-const pdf = await client.screenshot({
-  url: 'https://example.com',
-  format: 'pdf',
-  fullPage: true
-});
+**Extract types:**
+
+| Type | Description |
+|------|-------------|
+| `markdown` | Full page content as clean Markdown |
+| `text` | Plain text, no formatting |
+| `html` | Cleaned HTML |
+| `article` | Main article body, stripped of nav/ads/sidebars |
+| `structured` | JSON-LD, microdata, Open Graph structured data |
+| `links` | All links with their anchor text |
+| `images` | All images with src, alt, and dimensions |
+| `metadata` | Title, description, Open Graph tags, etc. |
+
+→ Full docs: [docs/extract.md](docs/extract.md)
+
+---
+
+### Analyze API `POST /v1/analyze`
+
+AI-powered page analysis using your own AI API key (BYOK).
+
+```bash
+curl -X POST "https://api.snapapi.pics/v1/analyze" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/product",
+    "prompt": "Extract product name, price, and availability",
+    "provider": "openai",
+    "apiKey": "sk-your-openai-key",
+    "jsonSchema": {
+      "name": "string",
+      "price": "number",
+      "inStock": "boolean"
+    }
+  }'
 ```
 
-### Wait for Dynamic Content
+Supports `openai` and `anthropic` as providers. BYOK means SnapAPI never charges for AI tokens — you pay your provider directly.
+
+→ Full docs: [docs/analyze.md](docs/analyze.md)
+
+---
+
+### Batch API `POST /v1/screenshot/batch`
+
+Capture hundreds of screenshots asynchronously.
+
+```bash
+# Start batch job
+curl -X POST "https://api.snapapi.pics/v1/screenshot/batch" \
+  -H "X-Api-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://example.com", "https://example.org"],
+    "format": "png",
+    "webhookUrl": "https://your-server.com/webhook"
+  }'
+
+# Poll for status
+curl "https://api.snapapi.pics/v1/screenshot/batch/{jobId}" \
+  -H "X-Api-Key: YOUR_API_KEY"
+```
+
+→ Full async/webhook docs: [docs/webhooks.md](docs/webhooks.md)
+
+---
+
+## Pricing
+
+| Plan | Price | Screenshots/month | Rate limit |
+|------|-------|-------------------|------------|
+| **Free** | $0 | 200 | 1 req/s |
+| **Starter** | $19/mo | 5,000 | 5 req/s |
+| **Pro** | $79/mo | 50,000 | 20 req/s |
+| **Enterprise** | Custom | Unlimited | Custom |
+
+Pay-as-you-go: **$0.002 per screenshot** above plan quota.
+
+Key feature differences:
+- **Free:** PNG/JPEG/WebP, full page, mobile viewports
+- **Starter+:** PDF, AVIF, ad blocking, dark mode, custom CSS
+- **Pro+:** Custom JS injection, webhooks, response caching, priority support
+- **Enterprise:** Dedicated infrastructure, SLA, custom rate limits
+
+[View full pricing →](https://snapapi.pics/#pricing)
+
+---
+
+## Error Codes
+
+| HTTP Status | Code | Description |
+|-------------|------|-------------|
+| 400 | `INVALID_REQUEST` | Missing or invalid parameters |
+| 400 | `INVALID_URL` | Malformed URL |
+| 401 | `INVALID_API_KEY` | Missing or invalid API key |
+| 402 | `QUOTA_EXCEEDED` | Monthly quota exceeded — upgrade plan |
+| 404 | `NOT_FOUND` | Resource not found |
+| 422 | `CONTENT_CHECK_FAILED` | `failIfContentMissing` or `failIfContentContains` triggered |
+| 429 | `RATE_LIMITED` | Too many requests — back off and retry |
+| 500 | `SCREENSHOT_FAILED` | Capture failed (check URL accessibility) |
+| 504 | `TIMEOUT` | Page load timed out — increase `timeout` |
+
+→ Full error reference: [docs/errors.md](docs/errors.md)
+
+---
+
+## SDK Quick Examples
+
+<details>
+<summary><strong>JavaScript / TypeScript</strong></summary>
+
 ```typescript
-const screenshot = await client.screenshot({
-  url: 'https://example.com',
-  delay: 2000  // Wait 2 seconds for JS to load
+import { SnapAPI } from '@snapapi/sdk';
+
+const client = new SnapAPI({ apiKey: 'YOUR_API_KEY' });
+
+// Screenshot
+const img = await client.screenshot({ url: 'https://example.com', format: 'png' });
+fs.writeFileSync('screenshot.png', img as Buffer);
+
+// PDF
+const pdf = await client.pdf({ url: 'https://example.com' });
+fs.writeFileSync('doc.pdf', pdf);
+
+// Extract article text for LLM
+const article = await client.extractArticle('https://blog.example.com/post');
+console.log(article.content);
+
+// AI analysis with structured output
+const result = await client.analyze({
+  url: 'https://shop.example.com/product',
+  prompt: 'Extract product details',
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY!,
+  jsonSchema: { name: 'string', price: 'number' }
 });
 ```
+</details>
+
+<details>
+<summary><strong>Python</strong></summary>
+
+```python
+from snapapi import SnapAPI
+
+client = SnapAPI(api_key='YOUR_API_KEY')
+
+# Screenshot
+screenshot = client.screenshot(url='https://example.com', format='png')
+with open('screenshot.png', 'wb') as f:
+    f.write(screenshot)
+
+# Extract article
+article = client.extract_article('https://blog.example.com/post')
+print(article['content'])
+```
+</details>
+
+<details>
+<summary><strong>Go</strong></summary>
+
+```go
+client := snapapi.NewClient("YOUR_API_KEY")
+
+data, err := client.Screenshot(snapapi.ScreenshotOptions{
+    URL:    "https://example.com",
+    Format: "png",
+})
+if err != nil {
+    log.Fatal(err)
+}
+os.WriteFile("screenshot.png", data, 0644)
+```
+</details>
+
+<details>
+<summary><strong>PHP</strong></summary>
+
+```php
+$client = new \SnapAPI\Client('YOUR_API_KEY');
+
+$screenshot = $client->screenshot([
+    'url'    => 'https://example.com',
+    'format' => 'png',
+]);
+file_put_contents('screenshot.png', $screenshot);
+```
+</details>
+
+<details>
+<summary><strong>Swift</strong></summary>
+
+```swift
+let client = SnapAPI(apiKey: "YOUR_API_KEY")
+let screenshot = try await client.screenshot(url: "https://example.com", format: .png)
+try screenshot.write(to: URL(fileURLWithPath: "screenshot.png"))
+```
+</details>
+
+<details>
+<summary><strong>Kotlin</strong></summary>
+
+```kotlin
+val client = SnapAPI("YOUR_API_KEY")
+val screenshot = client.screenshot(ScreenshotOptions(url = "https://example.com", format = "png"))
+File("screenshot.png").writeBytes(screenshot)
+```
+</details>
+
+---
+
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](docs/getting-started.md) | 5-minute quickstart |
+| [Screenshot API](docs/screenshot.md) | All parameters, device presets, PDF options |
+| [Extract API](docs/extract.md) | Web scraping & content extraction |
+| [Analyze API](docs/analyze.md) | AI analysis, BYOK guide |
+| [Proxy Guide](docs/proxy.md) | Proxies, residential IPs, Bing support |
+| [Webhooks](docs/webhooks.md) | Async jobs, HMAC verification |
+| [Scheduled Screenshots](docs/scheduled.md) | Cron-based capture |
+| [Storage](docs/storage.md) | SnapAPI storage & custom S3 |
+| [SDKs](docs/sdks.md) | All SDKs compared |
+| [Rate Limits](docs/rate-limits.md) | Limits by plan, 429 handling |
+| [Authentication](docs/authentication.md) | API keys, headers, query params |
+| [Error Reference](docs/errors.md) | All error codes & retry logic |
 
 ---
 
@@ -440,158 +500,42 @@ const screenshot = await client.screenshot({
 ```
 snapapi/
 ├── README.md           # This file
+├── docs/               # Full documentation
+│   ├── getting-started.md
+│   ├── screenshot.md
+│   ├── extract.md
+│   ├── analyze.md
+│   ├── proxy.md
+│   ├── webhooks.md
+│   ├── scheduled.md
+│   ├── storage.md
+│   ├── sdks.md
+│   ├── errors.md
+│   ├── rate-limits.md
+│   └── authentication.md
 ├── javascript/         # JavaScript/TypeScript SDK
-│   ├── src/
-│   │   └── index.ts
-│   ├── package.json
-│   └── README.md
 ├── python/             # Python SDK
-│   ├── snapapi/
-│   │   ├── __init__.py
-│   │   ├── client.py
-│   │   └── types.py
-│   ├── pyproject.toml
-│   └── README.md
 ├── php/                # PHP SDK
-│   ├── src/
-│   │   ├── Client.php
-│   │   └── Exception/
-│   ├── composer.json
-│   └── README.md
 ├── go/                 # Go SDK
-│   ├── client.go
-│   ├── types.go
-│   ├── errors.go
-│   ├── go.mod
-│   └── README.md
 ├── kotlin/             # Kotlin/Android SDK
-│   ├── src/
-│   │   └── main/kotlin/
-│   ├── build.gradle.kts
-│   └── README.md
 └── swift/              # Swift/iOS SDK
-    ├── Sources/
-    │   └── SnapAPI/
-    ├── Tests/
-    ├── Package.swift
-    └── README.md
 ```
-
----
-
-## Error Handling
-
-All SDKs throw/raise consistent errors:
-
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| `INVALID_URL` | The provided URL is malformed | Check URL format |
-| `INVALID_API_KEY` | API key is invalid or missing | Verify your API key |
-| `QUOTA_EXCEEDED` | Monthly quota exceeded | Upgrade your plan |
-| `RATE_LIMITED` | Too many requests | Implement backoff |
-| `TIMEOUT` | Page load timed out | Increase timeout or check URL |
-| `SCREENSHOT_FAILED` | Failed to capture screenshot | Check URL accessibility |
-
-### Example Error Handling
-
-```typescript
-import { SnapAPI, SnapAPIError } from '@snapapi/sdk';
-
-const client = new SnapAPI('sk_live_your_api_key');
-
-try {
-  const screenshot = await client.screenshot({ url: 'https://example.com' });
-} catch (error) {
-  if (error instanceof SnapAPIError) {
-    switch (error.code) {
-      case 'QUOTA_EXCEEDED':
-        console.log('Please upgrade your plan');
-        break;
-      case 'RATE_LIMITED':
-        console.log('Too many requests, retrying...');
-        await sleep(1000);
-        // retry
-        break;
-      default:
-        console.error(`Screenshot failed: ${error.message}`);
-    }
-  }
-}
-```
-
----
-
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/Sleywill/snapapi.git
-cd snapapi
-```
-
-2. Choose the SDK you want to work on:
-```bash
-cd javascript  # or python, php, go, kotlin, swift
-```
-
-3. Install dependencies and run tests (varies by SDK)
-
-### Pull Request Process
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ---
 
 ## Support
 
-- **Documentation:** [snapapi.pics/docs](https://snapapi.pics/docs.html)
-- **Email:** slwv.dev@gmail.com
+- **Documentation:** [snapapi.pics/docs.html](https://snapapi.pics/docs.html)
+- **Dashboard:** [snapapi.pics/dashboard.html](https://snapapi.pics/dashboard.html)
+- **Email:** [support@snapapi.pics](mailto:support@snapapi.pics)
 - **GitHub Issues:** [Open an issue](https://github.com/Sleywill/snapapi/issues)
-- **Twitter:** [@snapapi](https://twitter.com/snapapi)
 
 ---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE)
 
 ---
 
-<p align="center">
-  <sub>Built with ❤️ by the SnapAPI team</sub>
-</p>
-
-<p align="center">
-  <a href="https://snapapi.pics">Website</a> •
-  <a href="https://snapapi.pics/docs.html">Documentation</a> •
-  <a href="https://snapapi.pics/blog.html">Blog</a> •
-  <a href="https://twitter.com/snapapi">Twitter</a>
-</p>
-
-## Extract API (All SDKs)
-
-All SDKs support the Extract API for extracting clean content from webpages - perfect for LLM/RAG workflows.
-
-### Swift
-```swift
-let result = try await client.extractMarkdown("https://example.com")
-let article = try await client.extractArticle("https://blog.example.com")
-let structured = try await client.extractStructured("https://example.com")
-```
-
-### Kotlin
-```kotlin
-val result = client.extractMarkdown("https://example.com")
-val article = client.extractArticle("https://blog.example.com")
-val structured = client.extractStructured("https://example.com")
-```
-
-Available extract types: `markdown`, `text`, `html`, `article`, `structured`, `links`, `images`, `metadata`
+<p align="center">Built with ❤️ by the SnapAPI team</p>
