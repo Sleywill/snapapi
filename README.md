@@ -19,6 +19,8 @@
   <a href="https://www.npmjs.com/package/@snapapi/sdk"><img src="https://img.shields.io/npm/v/@snapapi/sdk?label=npm&color=cb3837" alt="npm"></a>
   <a href="https://pypi.org/project/snapapi/"><img src="https://img.shields.io/pypi/v/snapapi?label=pypi&color=3776ab" alt="PyPI"></a>
   <a href="https://pkg.go.dev/github.com/Sleywill/snapapi-go"><img src="https://img.shields.io/badge/go-pkg-00add8" alt="Go"></a>
+  <a href="https://rubygems.org/gems/snapapi"><img src="https://img.shields.io/badge/gem-snapapi-cc3429" alt="RubyGems"></a>
+  <a href="https://central.sonatype.com/artifact/pics.snapapi/snapapi-java"><img src="https://img.shields.io/badge/maven-snapapi--java-f56a00" alt="Maven Central"></a>
 </p>
 
 <p align="center">
@@ -70,8 +72,10 @@ SnapAPI is a headless-browser API that turns any URL into:
 | **Go** | `go get github.com/Sleywill/snapapi-go` | 1.3.1 |
 | **Kotlin / Android** | Gradle: `dev.snapapi:sdk:1.3.1` | 1.3.1 |
 | **Swift / iOS** | Swift Package Manager | 1.3.1 |
+| **Ruby** | `gem install snapapi` | 2.0.0 |
+| **Java** | Maven: `pics.snapapi:snapapi-java:2.0.0` | 2.0.0 |
 
-See [docs/sdks.md](docs/sdks.md) for installation details and code examples for every SDK.
+See [docs/sdks.md](docs/sdks.md) for installation details and code examples for all 8 SDKs.
 
 ---
 
@@ -473,6 +477,58 @@ val screenshot = client.screenshot(ScreenshotOptions(url = "https://example.com"
 File("screenshot.png").writeBytes(screenshot)
 ```
 </details>
+<details>
+<summary><strong>Ruby</strong></summary>
+
+```ruby
+require 'snapapi'
+
+client = SnapAPI::Client.new('YOUR_API_KEY')
+
+# Screenshot
+screenshot = client.screenshot(
+  url: 'https://example.com',
+  format: 'png',
+  width: 1280,
+  height: 800
+)
+File.binwrite('screenshot.png', screenshot)
+
+# PDF
+pdf = client.pdf(url: 'https://example.com')
+File.binwrite('document.pdf', pdf)
+```
+</details>
+
+<details>
+<summary><strong>Java</strong></summary>
+
+```java
+import pics.snapapi.SnapAPI;
+import pics.snapapi.ScreenshotOptions;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+SnapAPI client = new SnapAPI("YOUR_API_KEY");
+
+// Screenshot
+byte[] screenshot = client.screenshot(
+    ScreenshotOptions.builder()
+        .url("https://example.com")
+        .format("png")
+        .width(1280)
+        .height(800)
+        .build()
+);
+Files.write(Path.of("screenshot.png"), screenshot);
+
+// PDF
+byte[] pdf = client.pdf(
+    PdfOptions.builder().url("https://example.com").pageSize("A4").build()
+);
+Files.write(Path.of("document.pdf"), pdf);
+```
+</details>
 
 ---
 
@@ -518,7 +574,9 @@ snapapi/
 ├── php/                # PHP SDK
 ├── go/                 # Go SDK
 ├── kotlin/             # Kotlin/Android SDK
-└── swift/              # Swift/iOS SDK
+├── swift/              # Swift/iOS SDK
+├── ruby/               # Ruby SDK
+└── java/               # Java SDK
 ```
 
 ---
